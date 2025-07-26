@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { Folder, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,8 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { getOptimizedHtml } from "./actions";
-import { Skeleton } from "@/components/ui/skeleton";
 
 const FOLDERS_DATA = {
   physics: {
@@ -39,39 +37,22 @@ type FolderKey = keyof typeof FOLDERS_DATA;
 export default function Home() {
   const [selectedFolder, setSelectedFolder] = useState<FolderKey | null>(null);
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
-  const [htmlContent, setHtmlContent] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
 
   const handleFolderClick = (folder: FolderKey) => {
     if (selectedFolder === folder) {
       setSelectedFolder(null);
       setSelectedTopic(null);
-      setHtmlContent(null);
     } else {
       setSelectedFolder(folder);
       setSelectedTopic(null);
-      setHtmlContent(null);
     }
   };
 
   const handleTopicClick = (topic: string) => {
     if (!selectedFolder) return;
-
     setSelectedTopic(topic);
-    setHtmlContent(null); 
-
-    startTransition(async () => {
-      const filePath = `${selectedFolder}/${topic}`;
-      try {
-        const content = await getOptimizedHtml(filePath);
-        setHtmlContent(content);
-      } catch (error) {
-        console.error(error);
-        setHtmlContent(
-          `<div class="text-destructive p-4">Failed to load content.</div>`
-        );
-      }
-    });
+    const filePath = `/${selectedFolder}/${topic}`;
+    window.open(filePath, "_blank");
   };
 
   return (
@@ -138,32 +119,6 @@ export default function Home() {
                   {topic}
                 </Button>
               ))}
-            </CardContent>
-          </Card>
-        )}
-
-        {(isPending || htmlContent) && (
-          <Card className="shadow-lg min-h-[300px] animate-in fade-in-50 duration-500">
-            <CardHeader>
-              <CardTitle className="text-2xl">Content Viewer</CardTitle>
-              <CardDescription>
-                Displaying content for: {selectedFolder}/{selectedTopic}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isPending ? (
-                <div className="space-y-4">
-                  <Skeleton className="h-8 w-3/4" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-5/6" />
-                </div>
-              ) : (
-                <div
-                  className="html-content-view rounded-lg border bg-card p-6"
-                  dangerouslySetInnerHTML={{ __html: htmlContent || "" }}
-                />
-              )}
             </CardContent>
           </Card>
         )}
