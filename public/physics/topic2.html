@@ -1,23 +1,111 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Physics: Electromagnetism</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physics - Projectile Motion</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        #projectile-canvas {
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><rect width="20" height="20" fill="%23f3f4f6" /><rect width="1" height="20" fill="%23e5e7eb" /><rect width="20" height="1" fill="%23e5e7eb" /></svg>');
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db;
+        }
+    </style>
 </head>
-<body>
-  <h1>Topic 2: Electromagnetism</h1>
-  <p>Electromagnetism is the study of the electromagnetic force, a type of physical interaction that occurs between electrically charged particles.</p>
-  
-  <h2>Maxwell's Equations</h2>
-  <p>These are a set of four fundamental equations that form the foundation of classical electromagnetism.</p>
-  <ul>
-      <li>Gauss's Law for Electricity</li>
-      <li>Gauss's Law for Magnetism</li>
-      <li>Faraday's Law of Induction</li>
-      <li>Ampere's Law with Maxwell's addition</li>
-  </ul>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-8">
+    <div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
+        <h1 class="text-3xl font-bold mb-4 text-center text-pink-500">Projectile Motion Simulator</h1>
+        <p class="mb-6 text-center text-gray-600 dark:text-gray-400">Set the initial velocity and angle to launch a projectile.</p>
 
-  <div>
-    <p>This is some content inside a div without proper styling.</p>
-  </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+            <div class="md:col-span-1 space-y-4">
+                <div>
+                    <label for="velocity" class="block text-sm font-medium">Initial Velocity (m/s): <span id="velocityValue">50</span></label>
+                    <input type="range" id="velocity" min="10" max="100" step="1" value="50" class="w-full">
+                </div>
+                <div>
+                    <label for="angle" class="block text-sm font-medium">Angle (°): <span id="angleValue">45</span></label>
+                    <input type="range" id="angle" min="0" max="90" step="1" value="45" class="w-full">
+                </div>
+                <button id="launchButton" class="bg-pink-500 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded-lg w-full">Launch!</button>
+            </div>
+            <div class="md:col-span-2 flex justify-center">
+                <canvas id="projectile-canvas" width="500" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('projectile-canvas');
+        const ctx = canvas.getContext('2d');
+        const velocitySlider = document.getElementById('velocity');
+        const angleSlider = document.getElementById('angle');
+        const launchButton = document.getElementById('launchButton');
+        const velocityValue = document.getElementById('velocityValue');
+        const angleValue = document.getElementById('angleValue');
+
+        const g = 9.8;
+        let particles = [];
+
+        velocitySlider.addEventListener('input', e => velocityValue.textContent = e.target.value);
+        angleSlider.addEventListener('input', e => angleValue.textContent = e.target.value);
+        launchButton.addEventListener('click', launch);
+
+        function launch() {
+            const v = parseFloat(velocitySlider.value);
+            const angle = parseFloat(angleSlider.value) * Math.PI / 180;
+            const color = `hsl(${Math.random() * 360}, 70%, 60%)`;
+            
+            particles.push({
+                x: 0,
+                y: 0,
+                vx: v * Math.cos(angle),
+                vy: v * Math.sin(angle),
+                path: [],
+                color: color
+            });
+            if (particles.length > 5) particles.shift();
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            particles.forEach(p => {
+                p.path.push({x: p.x, y: p.y});
+
+                p.vy -= g * 0.1; // time step
+                p.x += p.vx * 0.1;
+                p.y += p.vy * 0.1;
+
+                if (p.y < 0) { // ground
+                    p.y = 0;
+                    p.vy = 0;
+                    p.vx = 0;
+                }
+
+                // Draw path
+                ctx.beginPath();
+                ctx.moveTo(p.path[0].x, canvas.height - p.path[0].y);
+                p.path.forEach(pos => {
+                    ctx.lineTo(pos.x, canvas.height - pos.y);
+                });
+                ctx.strokeStyle = p.color;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Draw projectile
+                ctx.beginPath();
+                ctx.arc(p.x, canvas.height - p.y, 5, 0, 2 * Math.PI);
+                ctx.fillStyle = p.color;
+                ctx.fill();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
 </body>
 </html>

@@ -1,16 +1,111 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Maths: Linear Algebra</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maths - Interactive Unit Circle</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        #unit-circle-canvas {
+            border: 1px solid #ccc;
+            cursor: pointer;
+        }
+    </style>
 </head>
-<body>
-  <h1>Topic 2: Linear Algebra</h1>
-  <p>Linear algebra is central to almost all areas of mathematics. It is the study of vectors, vector spaces, linear transformations, and systems of linear equations.</p>
-  
-  <table>
-    <tr><th>Object</th><th>Example</th></tr>
-    <tr><td>Vector</td><td>[1, 2, 3]</td></tr>
-    <tr><td>Matrix</td><td>[[1, 2], [3, 4]]</td></tr>
-  </table>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-8">
+    <div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
+        <h1 class="text-3xl font-bold mb-4 text-center text-blue-500">Interactive Unit Circle</h1>
+        <p class="mb-6 text-center text-gray-600 dark:text-gray-400">Click on the circle or drag the slider to see the values of sine, cosine, and the angle in degrees and radians.</p>
+        
+        <div class="flex flex-col md:flex-row items-center justify-center gap-8">
+            <div class="w-full md:w-1/3">
+                <input type="range" id="angleSlider" min="0" max="360" value="45" class="w-full">
+                <div id="info" class="mt-4 p-4 bg-gray-200 dark:bg-gray-700 rounded-lg">
+                    <p><strong>Angle:</strong> <span id="angleDeg">45°</span></p>
+                    <p><strong>Radians:</strong> <span id="angleRad">0.79</span></p>
+                    <p><strong>cos(θ):</strong> <span id="cosValue">0.707</span></p>
+                    <p><strong>sin(θ):</strong> <span id="sinValue">0.707</span></p>
+                </div>
+            </div>
+            <div>
+                <canvas id="unit-circle-canvas" width="300" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('unit-circle-canvas');
+        const ctx = canvas.getContext('2d');
+        const slider = document.getElementById('angleSlider');
+        const angleDegDisplay = document.getElementById('angleDeg');
+        const angleRadDisplay = document.getElementById('angleRad');
+        const cosValueDisplay = document.getElementById('cosValue');
+        const sinValueDisplay = document.getElementById('sinValue');
+        
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = 120;
+
+        function draw(angle) {
+            const rad = angle * Math.PI / 180;
+            const x = centerX + radius * Math.cos(rad);
+            const y = centerY - radius * Math.sin(rad);
+
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.strokeStyle = '#999';
+            ctx.stroke();
+
+            // Draw axes
+            ctx.beginPath();
+            ctx.moveTo(0, centerY);
+            ctx.lineTo(canvas.width, centerY);
+            ctx.moveTo(centerX, 0);
+            ctx.lineTo(centerX, canvas.height);
+            ctx.strokeStyle = '#ccc';
+            ctx.stroke();
+
+            // Draw line for angle
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(x, y);
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Draw point
+            ctx.beginPath();
+            ctx.arc(x, y, 5, 0, 2 * Math.PI);
+            ctx.fillStyle = '#ef4444';
+            ctx.fill();
+
+            // Update info
+            angleDegDisplay.textContent = `${angle}°`;
+            angleRadDisplay.textContent = rad.toFixed(2);
+            cosValueDisplay.textContent = Math.cos(rad).toFixed(3);
+            sinValueDisplay.textContent = Math.sin(rad).toFixed(3);
+        }
+
+        slider.addEventListener('input', (e) => {
+            draw(parseInt(e.target.value));
+        });
+        
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left - centerX;
+            const mouseY = centerY - (e.clientY - rect.top);
+            let angle = Math.atan2(mouseY, mouseX) * 180 / Math.PI;
+            if(angle < 0) angle += 360;
+            slider.value = angle;
+            draw(angle);
+        })
+
+        draw(45);
+    </script>
 </body>
 </html>

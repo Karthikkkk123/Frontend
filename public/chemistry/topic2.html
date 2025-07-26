@@ -1,20 +1,55 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Chemistry: Chemical Bonds</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chemistry - Molecular Structure</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .scene {
+            width: 300px;
+            height: 300px;
+            perspective: 600px;
+            margin: auto;
+        }
+        .molecule {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            animation: rotate 20s infinite linear;
+        }
+        .atom {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, white, black);
+        }
+        .oxygen { background: radial-gradient(circle at 30% 30%, white, red); transform: translateZ(0px); top: 125px; left: 125px; }
+        .hydrogen1 { background: radial-gradient(circle at 30% 30%, white, gray); transform: rotateY(104.5deg) translateZ(80px); top: 80px; left: 80px; width: 40px; height: 40px; }
+        .hydrogen2 { background: radial-gradient(circle at 30% 30%, white, gray); transform: rotateY(-104.5deg) translateZ(80px); top: 180px; left: 180px; width: 40px; height: 40px;}
+
+        @keyframes rotate {
+            from { transform: rotateX(0deg) rotateY(0deg); }
+            to { transform: rotateX(360deg) rotateY(360deg); }
+        }
+    </style>
 </head>
-<body>
-  <h1>Topic 2: Chemical Bonds</h1>
-  <p>A chemical bond is a lasting attraction between atoms, ions or molecules that enables the formation of chemical compounds.</p>
-  
-  <h2>Types of Bonds</h2>
-  <ul>
-    <li>Covalent Bond</li>
-    <li>Ionic Bond</li>
-    <li>Metallic Bond</li>
-  </ul>
-  
-  <p>Water (H<sub>2</sub>O) has covalent bonds.</p>
-  <section><p>This is a section.</p></section>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-8">
+    <div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
+        <h1 class="text-3xl font-bold mb-4 text-center text-green-500">Interactive Water Molecule (H₂O)</h1>
+        <p class="mb-6 text-center text-gray-600 dark:text-gray-400">A 3D representation of a water molecule. The molecule is continuously rotating.</p>
+
+        <div class="scene">
+            <div class="molecule" id="molecule">
+                <div class="atom oxygen"></div>
+                <div class="atom hydrogen1"></div>
+                <div class="atom hydrogen2"></div>
+            </div>
+        </div>
+        <p class="text-center mt-4 text-sm text-gray-500">The molecule is rotating automatically. You can also drag to rotate it (feature coming soon).</p>
+    </div>
 </body>
 </html>

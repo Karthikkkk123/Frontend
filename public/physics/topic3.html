@@ -1,24 +1,122 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Physics: Quantum Mechanics</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physics - Ohm's Law</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .circuit-container {
+            position: relative;
+            width: 400px;
+            height: 250px;
+            border: 2px solid #6b7280;
+            border-radius: 1rem;
+            margin: auto;
+            padding: 1rem;
+        }
+        .battery {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .resistor {
+            position: absolute;
+            right: 100px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 80px;
+            height: 30px;
+            border: 2px solid #6b7280;
+            text-align: center;
+            line-height: 26px;
+        }
+        .wire {
+            position: absolute;
+            background-color: #f59e0b;
+            height: 4px;
+        }
+    </style>
 </head>
-<body>
-  <h1>Topic 3: Quantum Mechanics</h1>
-  <p>Quantum mechanics is a fundamental theory in physics that provides a description of the physical properties of nature at the scale of atoms and subatomic particles.</p>
-  
-  <h2>Key Concepts</h2>
-  <p>Some of the core ideas in quantum mechanics include:</p>
-  <ul>
-    <li>Wave-particle duality</li>
-    <li>Quantization of energy</li>
-    <li>The uncertainty principle</li>
-  </ul>
-  
-  <table>
-    <tr><th>Concept</th><th>Description</th></tr>
-    <tr><td>Schrödinger Equation</td><td>Describes how the quantum state of a quantum system changes with time.</td></tr>
-    <tr><td>Pauli Exclusion Principle</td><td>States that two or more identical fermions cannot occupy the same quantum state within a quantum system simultaneously.</td></tr>
-  </table>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-8">
+    <div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
+        <h1 class="text-3xl font-bold mb-4 text-center text-yellow-500">Ohm's Law: V = IR</h1>
+        <p class="mb-6 text-center text-gray-600 dark:text-gray-400">Adjust Voltage (V) and Resistance (R) to see the effect on Current (I).</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="space-y-4">
+                <div>
+                    <label for="voltage" class="block text-sm font-medium">Voltage (V): <span id="voltageValue">12</span> V</label>
+                    <input type="range" id="voltage" min="1" max="24" step="1" value="12" class="w-full">
+                </div>
+                <div>
+                    <label for="resistance" class="block text-sm font-medium">Resistance (Ω): <span id="resistanceValue">100</span> Ω</label>
+                    <input type="range" id="resistance" min="10" max="1000" step="10" value="100" class="w-full">
+                </div>
+                <div class="p-4 bg-yellow-100 dark:bg-yellow-900/50 rounded-lg text-center">
+                    <p class="text-2xl font-bold">Current (I): <span id="currentValue">0.12</span> A</p>
+                </div>
+            </div>
+            <div class="circuit-container">
+                 <div class="battery">🔋</div>
+                 <div class="resistor">R</div>
+                 <!-- Wires -->
+                 <div class="wire" style="top: 50%; left: 60px; width: 150px; transform: translateY(-2px);"></div>
+                 <div class="wire" style="top: 50%; right: 40px; width: 60px; transform: translateY(-2px);"></div>
+                 <div class="wire" style="right: 40px; top: 30px; height: calc(50% - 30px); width: 4px;"></div>
+                 <div class="wire" style="right: 40px; bottom: 30px; height: calc(50% - 30px); width: 4px;"></div>
+                 <div class="wire" style="left: 40px; right: 40px; top: 30px;"></div>
+                 <div class="wire" style="left: 40px; right: 40px; bottom: 30px;"></div>
+                 <div class="wire" style="left: 40px; top: 30px; height: calc(50% - 30px); width: 4px;"></div>
+                 <div class="wire" style="left: 40px; bottom: 30px; height: calc(50% - 30px); width: 4px;"></div>
+
+                 <div id="electron-flow" class="absolute top-1/2 left-1/2 w-2 h-2 bg-blue-500 rounded-full" style="transition: all 0.5s linear;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const voltageSlider = document.getElementById('voltage');
+        const resistanceSlider = document.getElementById('resistance');
+        const voltageValue = document.getElementById('voltageValue');
+        const resistanceValue = document.getElementById('resistanceValue');
+        const currentValue = document.getElementById('currentValue');
+        const electronFlow = document.getElementById('electron-flow');
+
+        function updateCircuit() {
+            const v = parseFloat(voltageSlider.value);
+            const r = parseFloat(resistanceSlider.value);
+            const i = v / r;
+
+            voltageValue.textContent = v;
+            resistanceValue.textContent = r;
+            currentValue.textContent = i.toFixed(3);
+            
+            const animationDuration = 5 / i; // Faster for more current
+            electronFlow.style.animation = `flow ${Math.max(0.5, Math.min(10, animationDuration))}s linear infinite`;
+        }
+
+        voltageSlider.addEventListener('input', updateCircuit);
+        resistanceSlider.addEventListener('input', updateCircuit);
+        
+        // CSS Animation for electron flow (simplified)
+        const style = document.createElement('style');
+        style.innerHTML = `
+        @keyframes flow {
+            0% { transform: translate(-100px, -2px); }
+            25% { transform: translate(100px, -2px); }
+            50% { transform: translate(100px, -80px); }
+            75% { transform: translate(-100px, -80px); }
+            100% { transform: translate(-100px, -2px); }
+        }`;
+        document.head.appendChild(style);
+
+
+        updateCircuit();
+    </script>
 </body>
 </html>

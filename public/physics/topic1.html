@@ -1,22 +1,118 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Physics: Newtonian Mechanics</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physics - Pendulum Simulation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        #pendulum-canvas {
+            background-color: #f3f4f6;
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db;
+        }
+    </style>
 </head>
-<body>
-  <h1>Topic 1: Newtonian Mechanics</h1>
-  <p>Newtonian mechanics is a pillar of classical physics. It describes the motion of bodies under the influence of forces.</p>
-  <h2>Newton's Laws of Motion</h2>
-  <ol>
-    <li><b>Law of Inertia:</b> An object remains at rest or in uniform motion in a straight line unless acted upon by a force.</li>
-    <li><b>Law of Acceleration:</b> The acceleration of an object is directly proportional to the net force acting on it and inversely proportional to its mass (F=ma).</li>
-    <li><b>Law of Action-Reaction:</b> For every action, there is an equal and opposite reaction.</li>
-  </ol>
-  <p>This is a simple table:</p>
-  <table>
-    <tr><th>Concept</th><th>Formula</th></tr>
-    <tr><td>Momentum (p)</td><td>p = mv</td></tr>
-    <tr><td>Kinetic Energy (K)</td><td>K = 1/2 mv<sup>2</sup></td></tr>
-  </table>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-8">
+    <div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
+        <h1 class="text-3xl font-bold mb-4 text-center text-indigo-500">Pendulum Simulation</h1>
+        <p class="mb-6 text-center text-gray-600 dark:text-gray-400">Adjust the length and gravity to see how it affects the pendulum's period.</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+            <div class="md:col-span-1 space-y-4">
+                <div>
+                    <label for="length" class="block text-sm font-medium">Length (m): <span id="lengthValue">1.5</span></label>
+                    <input type="range" id="length" min="0.5" max="3" step="0.1" value="1.5" class="w-full">
+                </div>
+                <div>
+                    <label for="gravity" class="block text-sm font-medium">Gravity (m/s²): <span id="gravityValue">9.8</span></label>
+                    <input type="range" id="gravity" min="1" max="25" step="0.1" value="9.8" class="w-full">
+                </div>
+                <div class="p-4 bg-gray-200 dark:bg-gray-700 rounded-lg">
+                    <p class="font-bold">Period (T): <span id="period">2.46</span> s</p>
+                    <p class="text-xs">T = 2π√(L/g)</p>
+                </div>
+            </div>
+            <div class="md:col-span-2 flex justify-center">
+                <canvas id="pendulum-canvas" width="400" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('pendulum-canvas');
+        const ctx = canvas.getContext('2d');
+        const lengthSlider = document.getElementById('length');
+        const gravitySlider = document.getElementById('gravity');
+        const lengthValue = document.getElementById('lengthValue');
+        const gravityValue = document.getElementById('gravityValue');
+        const periodDisplay = document.getElementById('period');
+
+        let angle = Math.PI / 4;
+        let angleVelocity = 0;
+        let time = 0;
+
+        function updateValues() {
+            const length = parseFloat(lengthSlider.value);
+            const gravity = parseFloat(gravitySlider.value);
+            
+            lengthValue.textContent = length.toFixed(1);
+            gravityValue.textContent = gravity.toFixed(1);
+            
+            const period = 2 * Math.PI * Math.sqrt(length / gravity);
+            periodDisplay.textContent = period.toFixed(2);
+            return { length, gravity };
+        }
+
+        function animate() {
+            const { length, gravity } = updateValues();
+            const angleAcceleration = (-gravity / (length * 100)) * Math.sin(angle); // length in pixels
+
+            angleVelocity += angleAcceleration;
+            angle += angleVelocity;
+
+            // Dampening
+            angleVelocity *= 0.995;
+
+            draw(length * 100, angle);
+
+            requestAnimationFrame(animate);
+        }
+
+        function draw(l, a) {
+            const pivotX = canvas.width / 2;
+            const pivotY = 20;
+            const bobX = pivotX + l * Math.sin(a);
+            const bobY = pivotY + l * Math.cos(a);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Pivot
+            ctx.beginPath();
+            ctx.arc(pivotX, pivotY, 5, 0, 2 * Math.PI);
+            ctx.fillStyle = 'black';
+            ctx.fill();
+
+            // String
+            ctx.beginPath();
+            ctx.moveTo(pivotX, pivotY);
+            ctx.lineTo(bobX, bobY);
+            ctx.strokeStyle = 'black';
+            ctx.stroke();
+
+            // Bob
+            ctx.beginPath();
+            ctx.arc(bobX, bobY, 15, 0, 2 * Math.PI);
+            ctx.fillStyle = '#4f46e5';
+            ctx.fill();
+        }
+
+        lengthSlider.addEventListener('input', updateValues);
+        gravitySlider.addEventListener('input', updateValues);
+
+        updateValues();
+        animate();
+    </script>
 </body>
 </html>

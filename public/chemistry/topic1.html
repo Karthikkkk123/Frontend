@@ -3,16 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chemistry Topic 1</title>
+    <title>Chemistry - Titration Experiment</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: sans-serif; line-height: 1.6; padding: 20px; }
-        h1 { color: #333; }
-        p { color: #555; }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .beaker {
+            position: relative;
+            width: 150px;
+            height: 200px;
+            border: 5px solid #6b7280;
+            border-top: none;
+            border-radius: 0 0 20px 20px;
+        }
+        .liquid {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #fca5a5;
+            transition: height 0.5s ease, background-color 0.5s ease;
+        }
+        .indicator {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 50px;
+            background-color: #93c5fd;
+        }
     </style>
 </head>
-<body>
-    <h1>Introduction to Atomic Structure</h1>
-    <p>This is the first topic in Chemistry, covering the fundamental concepts of atomic structure. We will explore the history of the atomic model, including the contributions of scientists like Dalton, Thomson, Rutherford, and Bohr.</p>
-    <p>The atom is the smallest unit of matter that retains the properties of an element. It is composed of a central nucleus and one or more electrons bound to the nucleus.</p>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-8">
+    <div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
+        <h1 class="text-3xl font-bold mb-4 text-center text-blue-500">Acid-Base Titration</h1>
+        <p class="mb-6 text-center text-gray-600 dark:text-gray-400">Simulate a titration experiment by adding a base to an acid.</p>
+        
+        <div class="flex justify-center items-end h-72 mb-8">
+            <div class="beaker">
+                <div id="liquid" class="liquid" style="height: 50%;"></div>
+            </div>
+            <div id="indicator" class="indicator hidden"></div>
+        </div>
+
+        <div class="text-center">
+            <button id="addButton" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-transform transform hover:scale-105">
+                Add Base
+            </button>
+            <button id="resetButton" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg ml-4 transition-transform transform hover:scale-105">
+                Reset
+            </button>
+        </div>
+        <p id="status" class="text-center mt-4 font-semibold text-lg"></p>
+    </div>
+
+    <script>
+        const addButton = document.getElementById('addButton');
+        const resetButton = document.getElementById('resetButton');
+        const liquid = document.getElementById('liquid');
+        const status = document.getElementById('status');
+        let acidLevel = 50;
+        const equivalencePoint = 75;
+
+        addButton.addEventListener('click', () => {
+            if (acidLevel < 100) {
+                acidLevel += 5;
+                liquid.style.height = acidLevel + '%';
+
+                if (acidLevel >= equivalencePoint) {
+                    liquid.style.backgroundColor = '#d8b4fe'; // Light purple
+                    status.textContent = 'Equivalence point reached!';
+                    status.style.color = '#a855f7';
+                } else {
+                    status.textContent = 'Adding base...';
+                    status.style.color = '#3b82f6';
+                }
+            } else {
+                 status.textContent = 'Titration complete.';
+            }
+        });
+
+        resetButton.addEventListener('click', () => {
+            acidLevel = 50;
+            liquid.style.height = '50%';
+            liquid.style.backgroundColor = '#fca5a5'; // Light red
+            status.textContent = '';
+        });
+    </script>
 </body>
 </html>
