@@ -17,19 +17,19 @@ const FOLDERS_DATA = {
   physics: {
     name: "Physics",
     icon: Folder,
-    topics: ["topic1.html", "topic2.html", "topic3.html"],
+    topics: ["diffusion_en.html", "magnet-and-compass_en.html", "ohms-law_en.html"],
     description: "Explore topics in classical and modern physics."
   },
   maths: {
     name: "Maths",
     icon: Folder,
-    topics: ["topic1.html", "topic2.html", "topic3.html"],
+    topics: ["fractions-equality_en.html", "number-line-distance_en.html", "quadrilateral_en.html"],
     description: "Dive into mathematical concepts and theories."
   },
   chemistry: {
     name: "Chemistry",
     icon: Folder,
-    topics: ["topic1.html", "topic2.html", "topic3.html"],
+    topics: ["acid-base-solutions_en.html", "molecule-shapes-basics_en.html", "states-of-matter_en.html"],
     description: "Discover the world of molecules and reactions."
   },
 };
