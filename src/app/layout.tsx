@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
-  title: 'File Navigator',
+  title: 'EduExplorer',
   description: 'Navigate and view HTML files from your project folders.',
 };
 

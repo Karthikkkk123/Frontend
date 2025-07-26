@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Folder, FileText, LoaderCircle } from "lucide-react";
+import { Folder, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,7 +11,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { getOptimizedHtml } from "./actions";
-import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const FOLDERS_DATA = {
@@ -80,7 +79,7 @@ export default function Home() {
       <div className="w-full max-w-5xl space-y-8">
         <header className="text-center">
           <h1 className="text-4xl font-bold font-headline text-primary tracking-tight">
-            File Navigator
+            EduExplorer
           </h1>
           <p className="mt-2 text-lg text-muted-foreground">
             Select a subject to explore its topics.
@@ -102,15 +101,15 @@ export default function Home() {
                   key={key}
                   variant={selectedFolder === key ? "default" : "outline"}
                   onClick={() => handleFolderClick(key)}
-                  className="h-auto p-4 flex flex-col items-start text-left transition-all duration-200 ease-in-out transform hover:scale-105"
+                  className="h-auto justify-start p-6 flex flex-col items-start text-left transition-all duration-200 ease-in-out transform hover:scale-105"
                 >
-                  <div className="flex items-center gap-3">
-                    <folder.icon className="h-6 w-6 text-accent" />
-                    <div className="flex flex-col">
-                      <span className="font-semibold text-lg">{folder.name}</span>
-                      <span className="text-sm font-normal text-muted-foreground">{folder.description}</span>
-                    </div>
+                  <div className="flex items-center gap-4 mb-2">
+                    <folder.icon className="h-8 w-8 text-accent" />
+                    <span className="font-semibold text-xl">{folder.name}</span>
                   </div>
+                  <span className="text-sm font-normal text-muted-foreground whitespace-normal">
+                    {folder.description}
+                  </span>
                 </Button>
               );
             })}
