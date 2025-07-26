@@ -63,7 +63,7 @@ export default function Home() {
             <Link href={sim.href} key={sim.name} passHref>
               <Card
                 className={cn(
-                  "cursor-pointer transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 bg-secondary/50 border-border/50 animate-in fade-in zoom-in-95",
+                  "cursor-pointer transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 bg-secondary/50 border-border/50 animate-in fade-in zoom-in-95 h-full flex flex-col",
                   sim.shadow,
                 )}
                 style={{ animationDelay: `${index * 150}ms`, animationFillMode: 'backwards' }}
@@ -74,7 +74,7 @@ export default function Home() {
                   </div>
                   <CardTitle className="text-xl font-bold">{sim.name}</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="flex-grow">
                   <p className="text-muted-foreground">{sim.description}</p>
                 </CardContent>
               </Card>
