@@ -1,105 +1,131 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Linear Equations Simulation</title>
+    <title>Monte Carlo Pi Estimation</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            margin: 0;
             background-color: transparent;
-            color: #e0e0e0;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
         }
         .container {
-            border: 1px solid hsl(var(--border));
-            padding: 20px;
-            border-radius: 8px;
-            background-color: hsl(var(--card));
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background-color: #2c2c2c;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            border: 1px solid #444;
+            text-align: center;
+            width: 90%;
+            max-width: 600px;
         }
-        canvas {
-            background-color: #2D3748; /* A slightly lighter dark for the canvas */
-            border-radius: 4px;
-            border: 1px solid hsl(var(--border));
+        h1 {
+            color: #fd7e14;
+            font-weight: 300;
+            font-size: 2rem;
+            margin-bottom: 1rem;
         }
-        .controls {
-            margin-top: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        label {
+        #piEstimation {
+            font-size: 1.8rem;
+            color: #fd7e14;
+            margin-bottom: 1rem;
             font-weight: bold;
         }
-        input {
-            width: 100%;
+        #pointCounts {
+             margin-bottom: 1.5rem;
+        }
+        button {
+            background-color: #fd7e14;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #e86a04;
+        }
+        canvas {
+            background-color: #ffffff;
+            border-radius: 8px;
+            margin-top: 1.5rem;
+            border: 1px solid #ddd;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Linear Equation: y = mx + c</h1>
-        <canvas id="lineCanvas" width="400" height="400"></canvas>
-        <div class="controls">
-            <div>
-                <label for="slope">Slope (m): <span id="slopeValue">1</span></label>
-                <input type="range" id="slope" min="-5" max="5" value="1" step="0.1">
-            </div>
-            <div>
-                <label for="intercept">Y-Intercept (c): <span id="interceptValue">0</span></label>
-                <input type="range" id="intercept" min="-100" max="100" value="0">
-            </div>
+        <h1>Monte Carlo π Estimation</h1>
+        <div id="piEstimation">π ≈ 3.14159...</div>
+        <div id="pointCounts">
+            <span id="insideCount">0</span> points inside | 
+            <span id="totalCount">0</span> total points
         </div>
+        <button id="addPointsBtn">Add 1000 Points</button>
+        <canvas id="monteCarloCanvas" width="400" height="400"></canvas>
     </div>
 
     <script>
-        const canvas = document.getElementById('lineCanvas');
+        const canvas = document.getElementById('monteCarloCanvas');
         const ctx = canvas.getContext('2d');
-        const slopeSlider = document.getElementById('slope');
-        const interceptSlider = document.getElementById('intercept');
-        const slopeValueSpan = document.getElementById('slopeValue');
-        const interceptValueSpan = document.getElementById('interceptValue');
+        const addPointsBtn = document.getElementById('addPointsBtn');
+        const piEstimationEl = document.getElementById('piEstimation');
+        const insideCountEl = document.getElementById('insideCount');
+        const totalCountEl = document.getElementById('totalCount');
 
-        function drawGraph() {
-            const m = slopeSlider.value;
-            const c = interceptSlider.value;
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
+        let inside = 0;
+        let total = 0;
+        const radius = canvas.width / 2;
 
-            slopeValueSpan.textContent = m;
-            interceptValueSpan.textContent = c;
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Draw axes
-            ctx.strokeStyle = '#f0f0f0';
-            ctx.lineWidth = 1;
+        function drawBase() {
+            ctx.clearRect(0,0,canvas.width, canvas.height);
+            ctx.strokeStyle = '#ccc';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(0, 0, canvas.width, canvas.height);
             ctx.beginPath();
-            ctx.moveTo(0, centerY);
-            ctx.lineTo(canvas.width, centerY);
-            ctx.moveTo(centerX, 0);
-            ctx.lineTo(centerX, canvas.height);
-            ctx.stroke();
-
-            // Draw line y = mx + c
-            ctx.strokeStyle = '#3182CE';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.moveTo(0, centerY - (m * -centerX + c));
-            ctx.lineTo(canvas.width, centerY - (m * (canvas.width - centerX) + c));
+            ctx.arc(radius, radius, radius, 0, 2 * Math.PI);
             ctx.stroke();
         }
 
-        slopeSlider.addEventListener('input', drawGraph);
-        interceptSlider.addEventListener('input', drawGraph);
+        function addPoints(count) {
+            for (let i = 0; i < count; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const dist = Math.sqrt((x - radius)**2 + (y - radius)**2);
 
-        drawGraph();
+                total++;
+                if (dist < radius) {
+                    inside++;
+                    ctx.fillStyle = 'rgba(253, 126, 20, 0.6)';
+                } else {
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+                }
+                ctx.beginPath();
+                ctx.arc(x, y, 2, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+            updateEstimation();
+        }
+
+        function updateEstimation() {
+            const pi = 4 * (inside / total);
+            piEstimationEl.innerHTML = `π ≈ ${pi.toFixed(5)}`;
+            insideCountEl.textContent = inside;
+            totalCountEl.textContent = total;
+        }
+
+        addPointsBtn.addEventListener('click', () => addPoints(1000));
+        
+        drawBase();
+        addPoints(1000);
     </script>
 </body>
 </html>

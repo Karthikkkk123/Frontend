@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,116 +6,131 @@
     <title>Gas Laws Simulation</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            background-color: transparent;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #2c2c2c;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            border: 1px solid #444;
+            text-align: center;
+            width: 90%;
+            max-width: 600px;
+        }
+        h1 {
+            color: #e83e8c;
+            font-weight: 300;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            align-items: center;
+        }
+        .control-group {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            margin: 0;
-            background-color: transparent;
-            color: #e0e0e0;
-        }
-        .container {
-            border: 1px solid hsl(var(--border));
-            padding: 20px;
-            border-radius: 8px;
-            background-color: hsl(var(--card));
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        canvas {
-            background-color: #2D3748; /* A slightly lighter dark for the canvas */
-            border-radius: 4px;
-            border: 1px solid hsl(var(--border));
-        }
-        .controls {
-            margin-top: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            gap: 0.5rem;
         }
         label {
-            font-weight: bold;
+            font-size: 0.9rem;
+            color: #ccc;
         }
-        input {
-            width: 100%;
+        input[type="range"] {
+            width: 80%;
+        }
+        span {
+            font-weight: bold;
+            color: #fff;
+            background-color: #444;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        canvas {
+            background-color: #ffffff;
+            border-radius: 8px;
+            border: 1px solid #ddd;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Gas Laws Simulation (PV=nRT)</h1>
-        <canvas id="gasLawsCanvas" width="400" height="300"></canvas>
+        <h1>Ideal Gas Law</h1>
         <div class="controls">
-            <div>
-                <label for="pressure">Pressure (atm): <span id="pressureValue">1</span></label>
-                <input type="range" id="pressure" min="0.5" max="3" value="1" step="0.1">
+            <div class="control-group">
+                <label for="temp">Temperature (K)</label>
+                <input type="range" id="temp" min="100" max="600" value="300">
+                <span id="tempValue">300 K</span>
             </div>
-            <div>
-                <label for="temperature">Temperature (K): <span id="temperatureValue">298</span></label>
-                <input type="range" id="temperature" min="200" max="500" value="298" step="1">
+            <div class="control-group">
+                <label for="pressure">Pressure (atm)</label>
+                <input type="range" id="pressure" min="0.5" max="5" value="1" step="0.1">
+                <span id="pressureValue">1.0 atm</span>
             </div>
         </div>
-        <p>Volume: <span id="volumeValue">24.45</span> L</p>
+        <canvas id="gasCanvas" width="500" height="300"></canvas>
     </div>
 
     <script>
-        const canvas = document.getElementById('gasLawsCanvas');
+        const canvas = document.getElementById('gasCanvas');
         const ctx = canvas.getContext('2d');
+        const tempSlider = document.getElementById('temp');
         const pressureSlider = document.getElementById('pressure');
-        const temperatureSlider = document.getElementById('temperature');
-        const pressureValueSpan = document.getElementById('pressureValue');
-        const temperatureValueSpan = document.getElementById('temperatureValue');
-        const volumeValueSpan = document.getElementById('volumeValue');
+        const tempValue = document.getElementById('tempValue');
+        const pressureValue = document.getElementById('pressureValue');
 
-        const R = 0.0821; // Ideal gas constant
-        const n = 1; // moles of gas
+        const particles = [];
+        const numParticles = 50;
 
-        function updateSimulation() {
-            const P = pressureSlider.value;
-            const T = temperatureSlider.value;
-            const V = (n * R * T) / P;
-
-            pressureValueSpan.textContent = parseFloat(P).toFixed(2);
-            temperatureValueSpan.textContent = T;
-            volumeValueSpan.textContent = V.toFixed(2);
-
-            drawContainer(V);
-            drawParticles(T);
+        for (let i = 0; i < numParticles; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                vx: (Math.random() - 0.5) * 2,
+                vy: (Math.random() - 0.5) * 2,
+                radius: 4
+            });
         }
+        
+        function update() {
+            const temp = tempSlider.value;
+            const pressure = pressureSlider.value;
+            tempValue.textContent = `${temp} K`;
+            pressureValue.textContent = `${pressure.toFixed(1)} atm`;
 
-        function drawContainer(volume) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const maxVolume = (1 * R * 500) / 0.5;
-            const containerWidth = 200 + 150 * (volume / maxVolume);
-            const containerHeight = 200;
-            const x = (canvas.width - containerWidth) / 2;
-            const y = (canvas.height - containerHeight) / 2;
+            const speedMultiplier = Math.sqrt(temp / 100);
             
-            ctx.strokeStyle = '#f0f0f0';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(x, y, containerWidth, containerHeight);
-        }
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        function drawParticles(temperature) {
-            const numParticles = 20;
-            const speed = temperature / 100;
+            particles.forEach(p => {
+                p.x += p.vx * speedMultiplier;
+                p.y += p.vy * speedMultiplier;
 
-            for (let i = 0; i < numParticles; i++) {
-                const x = Math.random() * (canvas.width - 40) + 20;
-                const y = Math.random() * (canvas.height - 40) + 20;
-                const radius = 5;
-                
+                if (p.x < p.radius || p.x > canvas.width - p.radius) p.vx *= -1;
+                if (p.y < p.radius || p.y > canvas.height - p.radius) p.vy *= -1;
+
                 ctx.beginPath();
-                ctx.arc(x, y, radius, 0, Math.PI * 2);
-                ctx.fillStyle = `hsl(${240 - (temperature - 200)}, 100%, 50%)`; // Blue to Red
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(232, 62, 140, ${pressure / 5})`;
                 ctx.fill();
-            }
+            });
+
+            requestAnimationFrame(update);
         }
 
-        pressureSlider.addEventListener('input', updateSimulation);
-        temperatureSlider.addEventListener('input', updateSimulation);
-
-        updateSimulation();
+        update();
     </script>
 </body>
 </html>

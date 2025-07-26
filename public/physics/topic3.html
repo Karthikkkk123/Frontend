@@ -1,136 +1,166 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Block on an Inclined Plane Simulation</title>
+    <title>Ohm's Law Interactive Circuit</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            background-color: transparent;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #2c2c2c;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            border: 1px solid #444;
+            text-align: center;
+            width: 90%;
+            max-width: 600px;
+        }
+        h1 {
+            color: #ffc107;
+            font-weight: 300;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            align-items: center;
+        }
+        .control-group {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            margin: 0;
-            background-color: transparent;
-            color: #e0e0e0;
-        }
-        .container {
-            border: 1px solid hsl(var(--border));
-            padding: 20px;
-            border-radius: 8px;
-            background-color: hsl(var(--card));
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        canvas {
-            background-color: #2D3748; /* A slightly lighter dark for the canvas */
-            border-radius: 4px;
-            border: 1px solid hsl(var(--border));
-        }
-        .controls {
-            margin-top: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            gap: 0.5rem;
         }
         label {
-            font-weight: bold;
+            font-size: 0.9rem;
+            color: #ccc;
         }
-        input, button {
-            padding: 8px;
+        input[type="range"] {
+            width: 80%;
+        }
+        span {
+            font-weight: bold;
+            color: #fff;
+            background-color: #444;
+            padding: 4px 8px;
             border-radius: 4px;
-            border: 1px solid #4A5568;
-            background-color: #1A202C;
-            color: #e0e0e0;
         }
-        button {
-            cursor: pointer;
-            background-color: #3182CE;
-            border-color: #3182CE;
-            color: white;
-            font-weight: bold;
+        #currentDisplay {
+            margin-top: 1.5rem;
+            font-size: 1.5rem;
+            color: #ffc107;
+        }
+        canvas {
+            background-color: #ffffff;
+            border-radius: 8px;
+            margin-top: 1.5rem;
+            border: 1px solid #ddd;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Inclined Plane</h1>
-        <canvas id="inclinedPlaneCanvas" width="500" height="300"></canvas>
+        <h1>Ohm's Law Simulator</h1>
         <div class="controls">
-            <div>
-                <label for="angle">Angle: <span id="angleValue">30</span></label>
-                <input type="range" id="angle" min="10" max="60" value="30">
+            <div class="control-group">
+                <label for="voltage">Voltage (V)</label>
+                <input type="range" id="voltage" min="1" max="100" value="12">
+                <span id="voltageValue">12 V</span>
             </div>
-            <div>
-                <label for="friction">Coefficient of Friction: <span id="frictionValue">0.2</span></label>
-                <input type="range" id="friction" min="0" max="1" value="0.2" step="0.01">
+            <div class="control-group">
+                <label for="resistance">Resistance (Ω)</label>
+                <input type="range" id="resistance" min="1" max="100" value="10">
+                <span id="resistanceValue">10 Ω</span>
             </div>
-            <button id="reset">Reset</button>
         </div>
-        <p>Acceleration: <span id="accelerationValue">0</span> m/s²</p>
+        <div id="currentDisplay">Current (I): <span id="currentValue">1.20 A</span></div>
+        <canvas id="circuitCanvas" width="550" height="250"></canvas>
     </div>
 
     <script>
-        const canvas = document.getElementById('inclinedPlaneCanvas');
+        const canvas = document.getElementById('circuitCanvas');
         const ctx = canvas.getContext('2d');
-        const angleSlider = document.getElementById('angle');
-        const frictionSlider = document.getElementById('friction');
-        const angleValueSpan = document.getElementById('angleValue');
-        const frictionValueSpan = document.getElementById('frictionValue');
-        const accelerationValueSpan = document.getElementById('accelerationValue');
-        const resetButton = document.getElementById('reset');
+        const voltageSlider = document.getElementById('voltage');
+        const resistanceSlider = document.getElementById('resistance');
+        const voltageValue = document.getElementById('voltageValue');
+        const resistanceValue = document.getElementById('resistanceValue');
+        const currentValue = document.getElementById('currentValue');
 
-        const g = 9.8;
-        let blockPosition = 0;
-        let blockVelocity = 0;
+        function updateCircuit() {
+            const voltage = voltageSlider.value;
+            const resistance = resistanceSlider.value;
+            const current = (voltage / resistance).toFixed(2);
 
-        function updatePlane() {
-            const angle = angleSlider.value * Math.PI / 180;
-            const friction = frictionSlider.value;
+            voltageValue.textContent = `${voltage} V`;
+            resistanceValue.textContent = `${resistance} Ω`;
+            currentValue.textContent = `${current} A`;
             
-            angleValueSpan.textContent = angleSlider.value;
-            frictionValueSpan.textContent = friction;
-
-            const acceleration = g * (Math.sin(angle) - friction * Math.cos(angle));
-            accelerationValueSpan.textContent = acceleration.toFixed(2);
-            
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Draw incline
-            const planeLength = 450;
-            const planeHeight = planeLength * Math.tan(angle);
-            ctx.beginPath();
-            ctx.moveTo(25, canvas.height - 25);
-            ctx.lineTo(25 + planeLength, canvas.height - 25);
-            ctx.lineTo(25, canvas.height - 25 - planeHeight);
-            ctx.closePath();
-            ctx.fillStyle = '#f0f0f0';
-            ctx.fill();
-
-            // Animate block
-            blockVelocity += acceleration * 0.01;
-            blockPosition += blockVelocity;
-
-            if (blockPosition > planeLength / Math.cos(angle)) {
-                blockPosition = planeLength / Math.cos(angle);
-            }
-            
-            const blockX = 25 + blockPosition * Math.cos(angle);
-            const blockY = (canvas.height - 25 - planeHeight) + blockPosition * Math.sin(angle);
-            
-            ctx.fillStyle = 'tomato';
-            ctx.fillRect(blockX - 10, blockY - 20, 20, 20);
-
-            requestAnimationFrame(updatePlane);
+            drawCircuit(current);
         }
 
-        resetButton.addEventListener('click', () => {
-            blockPosition = 0;
-            blockVelocity = 0;
-        });
+        function drawCircuit(current) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = 80;
 
-        updatePlane();
+            // Draw wires
+            ctx.strokeStyle = '#888';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.stroke();
+
+            // Draw battery
+            ctx.fillStyle = '#444';
+            ctx.fillRect(centerX - 10, centerY - radius - 20, 20, 40);
+            ctx.fillStyle = '#ffc107';
+            ctx.fillRect(centerX - 15, centerY - radius - 25, 30, 5);
+            ctx.font = 'bold 14px sans-serif';
+            ctx.fillStyle = '#333'
+            ctx.fillText('V', centerX - 5, centerY - radius + 5);
+
+            // Draw resistor
+            ctx.fillStyle = '#333'
+            ctx.fillRect(centerX - 40, centerY + radius - 10, 80, 20);
+            ctx.font = 'bold 14px sans-serif';
+            ctx.fillText('R', centerX - 5, centerY + radius + 5);
+            
+            // Draw current flow (animated dots)
+            const numDots = Math.floor(current * 5);
+            ctx.fillStyle = '#ffc107';
+            for (let i = 0; i < numDots; i++) {
+                const angle = (Date.now() / 1000 * 2) + (i * 2 * Math.PI / numDots);
+                const x = centerX + radius * Math.cos(angle);
+                const y = centerY + radius * Math.sin(angle);
+                ctx.beginPath();
+                ctx.arc(x, y, 3, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+        }
+        
+        function animate() {
+            updateCircuit();
+            requestAnimationFrame(animate);
+        }
+
+        voltageSlider.addEventListener('input', updateCircuit);
+        resistanceSlider.addEventListener('input', updateCircuit);
+        
+        animate();
     </script>
 </body>
 </html>

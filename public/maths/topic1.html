@@ -1,61 +1,86 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Wave Simulation</title>
+    <title>Interactive Sine Wave</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            background-color: transparent;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #2c2c2c;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            border: 1px solid #444;
+            text-align: center;
+            width: 90%;
+            max-width: 700px;
+        }
+        h1 {
+            color: #dc3545;
+            font-weight: 300;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            align-items: center;
+        }
+        .control-group {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            margin: 0;
-            background-color: transparent;
-            color: #e0e0e0;
-        }
-        .container {
-            border: 1px solid hsl(var(--border));
-            padding: 20px;
-            border-radius: 8px;
-            background-color: hsl(var(--card));
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        canvas {
-            background-color: #2D3748; /* A slightly lighter dark for the canvas */
-            border-radius: 4px;
-            border: 1px solid hsl(var(--border));
-        }
-        .controls {
-            margin-top: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            gap: 0.5rem;
         }
         label {
-            font-weight: bold;
+            font-size: 0.9rem;
+            color: #ccc;
         }
-        input {
-            width: 100%;
+        input[type="range"] {
+            width: 80%;
+        }
+        span {
+            font-weight: bold;
+            color: #fff;
+            background-color: #444;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        canvas {
+            background-color: #ffffff;
+            border-radius: 8px;
+            border: 1px solid #ddd;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Sine Wave Simulation</h1>
-        <canvas id="waveCanvas" width="500" height="200"></canvas>
+        <h1>Sine Wave Simulator</h1>
         <div class="controls">
-            <div>
-                <label for="amplitude">Amplitude: <span id="amplitudeValue">50</span></label>
-                <input type="range" id="amplitude" min="10" max="90" value="50">
+            <div class="control-group">
+                <label for="amplitude">Amplitude</label>
+                <input type="range" id="amplitude" min="10" max="100" value="50">
+                <span id="amplitudeValue">50</span>
             </div>
-            <div>
-                <label for="frequency">Frequency: <span id="frequencyValue">2</span></label>
-                <input type="range" id="frequency" min="1" max="10" value="2" step="0.1">
+            <div class="control-group">
+                <label for="frequency">Frequency</label>
+                <input type="range" id="frequency" min="0.5" max="5" value="1" step="0.1">
+                <span id="frequencyValue">1</span>
             </div>
         </div>
+        <canvas id="waveCanvas" width="650" height="300"></canvas>
     </div>
 
     <script>
@@ -63,44 +88,51 @@
         const ctx = canvas.getContext('2d');
         const amplitudeSlider = document.getElementById('amplitude');
         const frequencySlider = document.getElementById('frequency');
-        const amplitudeValueSpan = document.getElementById('amplitudeValue');
-        const frequencyValueSpan = document.getElementById('frequencyValue');
+        const amplitudeValue = document.getElementById('amplitudeValue');
+        const frequencyValue = document.getElementById('frequencyValue');
 
         let time = 0;
 
-        function drawWave() {
+        function draw() {
             const amplitude = amplitudeSlider.value;
             const frequency = frequencySlider.value;
-            const centerY = canvas.height / 2;
-
-            amplitudeValueSpan.textContent = amplitude;
-            frequencyValueSpan.textContent = frequency;
-
+            amplitudeValue.textContent = amplitude;
+            frequencyValue.textContent = frequency;
+            
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Draw axis
-            ctx.strokeStyle = '#f0f0f0';
+            
+            const centerY = canvas.height / 2;
+            
+            // Draw axes
+            ctx.strokeStyle = '#aaa';
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(0, centerY);
             ctx.lineTo(canvas.width, centerY);
+            ctx.moveTo(20, 0);
+            ctx.lineTo(20, canvas.height);
             ctx.stroke();
 
             // Draw wave
-            ctx.strokeStyle = '#3182CE';
-            ctx.lineWidth = 3;
             ctx.beginPath();
-            for (let x = 0; x < canvas.width; x++) {
-                const y = centerY + amplitude * Math.sin((x * frequency / 100) + time);
-                ctx.lineTo(x, y);
+            ctx.moveTo(20, centerY);
+            ctx.strokeStyle = '#dc3545';
+            ctx.lineWidth = 3;
+
+            for (let x = 0; x < canvas.width - 20; x++) {
+                const y = Math.sin(x * 0.05 * frequency + time) * amplitude;
+                ctx.lineTo(x + 20, centerY - y);
             }
             ctx.stroke();
-
+            
             time += 0.05;
-            requestAnimationFrame(drawWave);
+            requestAnimationFrame(draw);
         }
 
-        drawWave();
+        amplitudeSlider.addEventListener('input', () => time=0);
+        frequencySlider.addEventListener('input', () => time=0);
+
+        draw();
     </script>
 </body>
 </html>

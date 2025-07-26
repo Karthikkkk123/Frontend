@@ -1,123 +1,151 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chemical Equilibrium Simulation</title>
+    <title>Chemical Equilibrium</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            margin: 0;
             background-color: transparent;
-            color: #e0e0e0;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
         }
         .container {
-            border: 1px solid hsl(var(--border));
-            padding: 20px;
-            border-radius: 8px;
-            background-color: hsl(var(--card));
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background-color: #2c2c2c;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            border: 1px solid #444;
+            text-align: center;
+            width: 90%;
+            max-width: 600px;
         }
-        canvas {
-            background-color: #2D3748; /* A slightly lighter dark for the canvas */
-            border-radius: 4px;
-            border: 1px solid hsl(var(--border));
+        h1 {
+            color: #20c997;
+            font-weight: 300;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+        }
+        .reaction {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .reaction span {
+            font-weight: bold;
         }
         .controls {
-            margin-top: 20px;
             display: flex;
-            gap: 10px;
             justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            align-items: center;
         }
         button {
-            padding: 10px;
-            border-radius: 4px;
-            border: none;
-            cursor: pointer;
-            background-color: #3182CE;
+            background-color: #20c997;
             color: white;
-            font-weight: bold;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #1aa87f;
+        }
+        canvas {
+            background-color: #ffffff;
+            border-radius: 8px;
+            border: 1px solid #ddd;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Chemical Equilibrium: N₂ + 3H₂ ⇌ 2NH₃</h1>
-        <canvas id="equilibriumCanvas" width="500" height="200"></canvas>
+        <h1>Chemical Equilibrium</h1>
+        <div class="reaction">
+            <span style="color: #6f42c1;">2A</span> + <span style="color: #dc3545;">B</span> ⇌ <span style="color: #00aaff;">C</span>
+        </div>
         <div class="controls">
-            <button id="addN2">Add N₂</button>
-            <button id="addH2">Add H₂</button>
-            <button id="removeNH3">Remove NH₃</button>
+            <button id="addA">Add A</button>
+            <button id="addB">Add B</button>
+            <button id="removeC">Remove C</button>
+            <button id="reset">Reset</button>
         </div>
-        <div>
-            <p>N₂: <span id="n2_conc">10</span> | H₂: <span id="h2_conc">10</span> | NH₃: <span id="nh3_conc">10</span></p>
-        </div>
+        <canvas id="equilibriumCanvas" width="500" height="300"></canvas>
     </div>
 
     <script>
         const canvas = document.getElementById('equilibriumCanvas');
         const ctx = canvas.getContext('2d');
-        const n2ConcSpan = document.getElementById('n2_conc');
-        const h2ConcSpan = document.getElementById('h2_conc');
-        const nh3ConcSpan = document.getElementById('nh3_conc');
 
-        let concentrations = { N2: 10, H2: 10, NH3: 10 };
+        const state = {
+            a: 20,
+            b: 10,
+            c: 10,
+            k: 0.5
+        };
 
-        function drawEquilibrium() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const total = concentrations.N2 + concentrations.H2 + concentrations.NH3;
+        function updateEquilibrium() {
+            let q = state.c / (state.a * state.a * state.b);
             
-            let currentX = 0;
-            
-            // Draw N2
-            const n2Width = (concentrations.N2 / total) * canvas.width;
-            ctx.fillStyle = 'royalblue';
-            ctx.fillRect(currentX, 0, n2Width, canvas.height);
-            currentX += n2Width;
-            
-            // Draw H2
-            const h2Width = (concentrations.H2 / total) * canvas.width;
-            ctx.fillStyle = 'lightgreen';
-            ctx.fillRect(currentX, 0, h2Width, canvas.height);
-            currentX += h2Width;
-            
-            // Draw NH3
-            const nh3Width = (concentrations.NH3 / total) * canvas.width;
-            ctx.fillStyle = 'tomato';
-            ctx.fillRect(currentX, 0, nh3Width, canvas.height);
-
-            n2ConcSpan.textContent = concentrations.N2;
-            h2ConcSpan.textContent = concentrations.H2;
-            nh3ConcSpan.textContent = concentrations.NH3;
+            if (q < state.k) { // Shift right
+                let change = Math.min(state.a / 2, state.b, 0.1);
+                state.a -= 2 * change;
+                state.b -= change;
+                state.c += change;
+            } else if (q > state.k) { // Shift left
+                let change = Math.min(state.c, 0.1);
+                state.a += 2 * change;
+                state.b += change;
+                state.c -= change;
+            }
+            draw();
         }
 
-        document.getElementById('addN2').addEventListener('click', () => {
-            concentrations.N2 += 2;
-            concentrations.NH3 += 1; // Shift right
-            concentrations.H2 = Math.max(0, concentrations.H2 - 1);
-            drawEquilibrium();
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const total = state.a + state.b + state.c;
+            const barWidth = canvas.width / 3;
+            
+            // Draw A
+            ctx.fillStyle = '#6f42c1';
+            let heightA = (state.a / total) * canvas.height;
+            ctx.fillRect(0, canvas.height - heightA, barWidth, heightA);
+            
+            // Draw B
+            ctx.fillStyle = '#dc3545';
+            let heightB = (state.b / total) * canvas.height;
+            ctx.fillRect(barWidth, canvas.height - heightB, barWidth, heightB);
+
+            // Draw C
+            ctx.fillStyle = '#00aaff';
+            let heightC = (state.c / total) * canvas.height;
+            ctx.fillRect(barWidth * 2, canvas.height - heightC, barWidth, heightC);
+            
+            ctx.fillStyle = "#333";
+            ctx.font = 'bold 16px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`A: ${state.a.toFixed(1)}`, barWidth/2, canvas.height - 10);
+            ctx.fillText(`B: ${state.b.toFixed(1)}`, barWidth * 1.5, canvas.height - 10);
+            ctx.fillText(`C: ${state.c.toFixed(1)}`, barWidth * 2.5, canvas.height - 10);
+        }
+
+        document.getElementById('addA').addEventListener('click', () => state.a += 5);
+        document.getElementById('addB').addEventListener('click', () => state.b += 5);
+        document.getElementById('removeC').addEventListener('click', () => state.c = Math.max(0, state.c - 5));
+        document.getElementById('reset').addEventListener('click', () => {
+            state.a = 20; state.b = 10; state.c = 10;
         });
 
-        document.getElementById('addH2').addEventListener('click', () => {
-            concentrations.H2 += 2;
-            concentrations.NH3 += 1; // Shift right
-            concentrations.N2 = Math.max(0, concentrations.N2 - 1);
-            drawEquilibrium();
-        });
-
-        document.getElementById('removeNH3').addEventListener('click', () => {
-            concentrations.NH3 = Math.max(0, concentrations.NH3 - 2);
-            concentrations.N2 += 1; // Shift left
-            concentrations.H2 += 1;
-            drawEquilibrium();
-        });
-
-        drawEquilibrium();
+        setInterval(updateEquilibrium, 50);
+        draw();
     </script>
 </body>
 </html>

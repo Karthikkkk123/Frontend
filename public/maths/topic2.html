@@ -1,101 +1,132 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Circle Geometry Simulation</title>
+    <title>Fourier Series Square Wave</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            margin: 0;
             background-color: transparent;
-            color: #e0e0e0;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
         }
         .container {
-            border: 1px solid hsl(var(--border));
-            padding: 20px;
-            border-radius: 8px;
-            background-color: hsl(var(--card));
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background-color: #2c2c2c;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            border: 1px solid #444;
+            text-align: center;
+            width: 90%;
+            max-width: 800px;
         }
-        canvas {
-            background-color: #2D3748; /* A slightly lighter dark for the canvas */
-            border-radius: 4px;
-            border: 1px solid hsl(var(--border));
+        h1 {
+            color: #6f42c1;
+            font-weight: 300;
+            font-size: 2rem;
+            margin-bottom: 2rem;
         }
         .controls {
-            margin-top: 20px;
             display: flex;
-            flex-direction: column;
-            gap: 10px;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            align-items: center;
         }
         label {
-            font-weight: bold;
+            font-size: 0.9rem;
+            color: #ccc;
         }
-        input {
-            width: 100%;
+        input[type="range"] {
+            width: 250px;
+        }
+        span {
+            font-weight: bold;
+            color: #fff;
+            background-color: #444;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        canvas {
+            background-color: #ffffff;
+            border-radius: 8px;
+            border: 1px solid #ddd;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Circle Geometry</h1>
-        <canvas id="circleCanvas" width="300" height="300"></canvas>
+        <h1>Fourier Series: Square Wave</h1>
         <div class="controls">
-            <div>
-                <label for="radius">Radius: <span id="radiusValue">100</span></label>
-                <input type="range" id="radius" min="20" max="140" value="100">
-            </div>
+            <label for="terms">Number of Terms (n)</label>
+            <input type="range" id="terms" min="1" max="50" value="1" step="1">
+            <span id="termsValue">1</span>
         </div>
-        <p>Area: <span id="areaValue">0</span></p>
-        <p>Circumference: <span id="circumferenceValue">0</span></p>
+        <canvas id="fourierCanvas" width="750" height="400"></canvas>
     </div>
 
     <script>
-        const canvas = document.getElementById('circleCanvas');
+        const canvas = document.getElementById('fourierCanvas');
         const ctx = canvas.getContext('2d');
-        const radiusSlider = document.getElementById('radius');
-        const radiusValueSpan = document.getElementById('radiusValue');
-        const areaValueSpan = document.getElementById('areaValue');
-        const circumferenceValueSpan = document.getElementById('circumferenceValue');
+        const termsSlider = document.getElementById('terms');
+        const termsValue = document.getElementById('termsValue');
 
-        function updateCircle() {
-            const radius = radiusSlider.value;
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
-
-            radiusValueSpan.textContent = radius;
-            const area = (Math.PI * radius * radius).toFixed(2);
-            const circumference = (2 * Math.PI * radius).toFixed(2);
-            areaValueSpan.textContent = area;
-            circumferenceValueSpan.textContent = circumference;
-
+        let time = 0;
+        
+        function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const terms = parseInt(termsSlider.value);
+            termsValue.textContent = terms;
+            
+            const w = 250;
+            const h = 400;
+            
+            ctx.save();
+            ctx.translate(w / 4, h / 2);
 
-            // Draw circle
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-            ctx.fillStyle = 'rgba(49, 130, 206, 0.5)';
-            ctx.fill();
-            ctx.strokeStyle = '#3182CE';
-            ctx.lineWidth = 3;
+            let x = 0;
+            let y = 0;
+            
+            for (let i = 0; i < terms; i++) {
+                const prev_x = x;
+                const prev_y = y;
+                const n = 2 * i + 1;
+                const radius = 100 * (4 / (n * Math.PI));
+                
+                ctx.strokeStyle = 'rgba(111, 66, 193, 0.5)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(prev_x, prev_y, radius, 0, 2 * Math.PI);
+                ctx.stroke();
+                
+                x += radius * Math.cos(n * time);
+                y += radius * Math.sin(n * time);
+                
+                ctx.strokeStyle = '#6f42c1';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(prev_x, prev_y);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+            }
+            
+            ctx.translate(w, 0);
+            ctx.lineTo(0, y);
             ctx.stroke();
 
-            // Draw radius line
-            ctx.beginPath();
-            ctx.moveTo(centerX, centerY);
-            ctx.lineTo(centerX + parseInt(radius), centerY);
-            ctx.strokeStyle = 'white';
-            ctx.stroke();
+            ctx.restore();
+            
+            time -= 0.02;
+            requestAnimationFrame(draw);
         }
 
-        radiusSlider.addEventListener('input', updateCircle);
-        updateCircle();
+        termsSlider.addEventListener('input', draw);
+        draw();
     </script>
 </body>
 </html>
