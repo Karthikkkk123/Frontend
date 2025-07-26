@@ -15,7 +15,7 @@ const SIMULATIONS = [
     shadow: "shadow-purple-400/20",
   },
   {
-    name: "Wave Interference",
+    name: "Photosynthesis",
     icon: Dna,
     description: "Explore how waves interact with each other.",
     href: "/simu2.html",
@@ -23,7 +23,7 @@ const SIMULATIONS = [
     shadow: "shadow-blue-400/20",
   },
   {
-    name: "Chemical Titration",
+    name: "Pendulum",
     icon: FlaskConical,
     description: "Simulate a chemical titration experiment.",
     href: "/simu3.html",
@@ -31,7 +31,7 @@ const SIMULATIONS = [
     shadow: "shadow-green-400/20",
   },
   {
-    name: "Atomic Structure",
+    name: "Rotational Torque",
     icon: Atom,
     description: "Discover the components of an atom.",
     href: "/simu4.html",
