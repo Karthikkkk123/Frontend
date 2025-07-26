@@ -1,145 +1,123 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pythagorean Theorem Visualization</title>
+    <title>Lissajous Curves</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: transparent;
+            color: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #f0f0f0;
+        }
+        canvas {
+            border: 1px solid #555;
+            background-color: #1a202c;
+            display: block;
+            margin: 20px auto;
+            border-radius: 8px;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .control {
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin: 0;
-            padding: 2rem;
-            background-color: #f0f4f8;
-            color: #333;
         }
-        #simulation-container {
-            position: relative;
-            width: 800px;
-            height: 600px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        label {
+            margin-bottom: 5px;
         }
-        canvas { display: block; }
-        #controls {
-            width: 800px;
-            padding: 1.5rem;
-            margin-top: 1rem;
-            background-color: #ffffff;
-            border-radius: 8px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
+        input[type="range"] {
+            width: 150px;
         }
-        label { font-weight: bold; }
-        input[type="range"] { width: 100%; }
-        #equation {
-            grid-column: 1 / -1;
-            text-align: center;
-            font-size: 2rem;
-            font-family: 'Times New Roman', Times, serif;
-        }
-        .a-color { color: #d9534f; }
-        .b-color { color: #5bc0de; }
-        .c-color { color: #5cb85c; }
-
     </style>
 </head>
 <body>
-    <h1>Pythagorean Theorem: a² + b² = c²</h1>
-    <div id="simulation-container">
-        <canvas id="simulationCanvas" width="800" height="600"></canvas>
-    </div>
-    <div id="controls">
-        <div>
-            <label for="a">Side a: <span id="aValue" class="a-color">150</span></label>
-            <input type="range" id="a" min="50" max="300" value="150">
-        </div>
-        <div>
-            <label for="b">Side b: <span id="bValue" class="b-color">200</span></label>
-            <input type="range" id="b" min="50" max="400" value="200">
-        </div>
-        <div id="equation">
-            <span class="a-color">a²</span> + <span class="b-color">b²</span> = <span class="c-color">c²</span>
-            <br>
-            <span id="calculation"></span>
+    <div class="container">
+        <h1>Lissajous Curves</h1>
+        <canvas id="lissajousCanvas" width="400" height="400"></canvas>
+        <div class="controls">
+            <div class="control">
+                <label for="freqX">X Freq: <span id="freqXValue">3</span></label>
+                <input type="range" id="freqX" min="1" max="10" value="3" step="1">
+            </div>
+            <div class="control">
+                <label for="freqY">Y Freq: <span id="freqYValue">2</span></label>
+                <input type="range" id="freqY" min="1" max="10" value="2" step="1">
+            </div>
+            <div class="control">
+                <label for="phase">Phase: <span id="phaseValue">0</span></label>
+                <input type="range" id="phase" min="0" max="360" value="0" step="1">
+            </div>
         </div>
     </div>
 
     <script>
-        const canvas = document.getElementById('simulationCanvas');
+        const canvas = document.getElementById('lissajousCanvas');
         const ctx = canvas.getContext('2d');
-        const aInput = document.getElementById('a');
-        const bInput = document.getElementById('b');
-        const aValueSpan = document.getElementById('aValue');
-        const bValueSpan = document.getElementById('bValue');
-        const calculationSpan = document.getElementById('calculation');
+        const freqXInput = document.getElementById('freqX');
+        const freqYInput = document.getElementById('freqY');
+        const phaseInput = document.getElementById('phase');
+        const freqXValue = document.getElementById('freqXValue');
+        const freqYValue = document.getElementById('freqYValue');
+        const phaseValue = document.getElementById('phaseValue');
+
+        function updateValues() {
+            freqXValue.textContent = freqXInput.value;
+            freqYValue.textContent = freqYInput.value;
+            phaseValue.textContent = phaseInput.value;
+        }
         
-        const originX = 150;
-        const originY = 450;
-        
+        freqXInput.oninput = updateValues;
+        freqYInput.oninput = updateValues;
+        phaseInput.oninput = updateValues;
+
+
         function draw() {
-            const a = parseFloat(aInput.value);
-            const b = parseFloat(bInput.value);
-            const c = Math.sqrt(a*a + b*b);
+            const freqX = parseInt(freqXInput.value);
+            const freqY = parseInt(freqYInput.value);
+            const phase = parseFloat(phaseInput.value) * Math.PI / 180;
+            const amplitude = 150;
+            const center = 200;
 
-            aValueSpan.textContent = a.toFixed(0);
-            bValueSpan.textContent = b.toFixed(0);
-            
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Draw square for a
-            ctx.fillStyle = 'rgba(217, 83, 79, 0.5)';
-            ctx.fillRect(originX, originY - a, -a, a);
-            
-            // Draw square for b
-            ctx.fillStyle = 'rgba(91, 192, 222, 0.5)';
-            ctx.fillRect(originX, originY, b, b);
-
-            // Draw the triangle
             ctx.beginPath();
-            ctx.moveTo(originX, originY); // Origin
-            ctx.lineTo(originX, originY - a); // Up side a
-            ctx.lineTo(originX + b, originY); // Right side b
-            ctx.closePath();
-            ctx.fillStyle = '#f0ad4e';
-            ctx.fill();
-            ctx.strokeStyle = '#333';
+            ctx.strokeStyle = '#4299e1';
             ctx.lineWidth = 2;
+            
+            for (let t = 0; t < 2 * Math.PI; t += 0.01) {
+                const x = center + amplitude * Math.sin(freqX * t);
+                const y = center + amplitude * Math.sin(freqY * t + phase);
+                if (t === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.closePath();
             ctx.stroke();
-
-            // Draw square for c
-            ctx.save();
-            ctx.translate(originX, originY - a);
-            ctx.rotate(Math.atan2(b, a));
-            ctx.fillStyle = 'rgba(92, 184, 92, 0.5)';
-            ctx.fillRect(0, 0, c, c);
-            ctx.restore();
-
-            // Draw labels
-            ctx.fillStyle = "#000";
-            ctx.font = "bold 16px Arial";
-            ctx.textAlign = "center";
-            ctx.fillText("a", originX - 20, originY - a / 2);
-            ctx.fillText("b", originX + b / 2, originY + 20);
-            ctx.save();
-            ctx.translate(originX + b / 2, originY - a / 2);
-            ctx.rotate(-Math.atan(a/b));
-            ctx.fillText("c", 0, -10);
-            ctx.restore();
-
-            // Update equation
-            calculationSpan.innerHTML = 
-                `<span class="a-color">${a.toFixed(0)}²</span> + <span class="b-color">${b.toFixed(0)}²</span> = <span class="c-color">${c.toFixed(0)}²</span><br>` +
-                `<span class="a-color">${(a*a).toFixed(0)}</span> + <span class="b-color">${(b*b).toFixed(0)}</span> = <span class="c-color">${(c*c).toFixed(0)}</span>`;
+            requestAnimationFrame(draw);
         }
 
-        aInput.addEventListener('input', draw);
-        bInput.addEventListener('input', draw);
-        window.addEventListener('load', draw);
+        draw();
     </script>
 </body>
 </html>
+
+    

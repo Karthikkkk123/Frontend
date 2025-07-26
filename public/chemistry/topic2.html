@@ -1,164 +1,164 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gas Laws Simulation</title>
+    <title>Ideal Gas Law</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
             margin: 0;
-            padding: 2rem;
-            background-color: #f0f4f8;
-            color: #333;
+            padding: 20px;
+            background-color: transparent;
+            color: #f0f0f0;
         }
-        #simulation-container {
-            width: 800px;
-            height: 500px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
         }
-        #gas-chamber {
+        h1, p {
+            text-align: center;
+            color: #f0f0f0;
+        }
+        .chamber-container {
             position: relative;
             width: 400px;
             height: 400px;
-            background-color: #ffffff;
-            border: 5px solid #333;
-            transition: width 0.5s, height 0.5s;
-            overflow: hidden;
+            border: 2px solid #ccc;
+            margin: 20px auto;
+            background-color: #1a202c;
+            border-radius: 8px;
         }
         .particle {
             position: absolute;
             width: 10px;
             height: 10px;
-            background-color: #d9534f;
+            background-color: #f56565;
             border-radius: 50%;
         }
-        #controls {
-            width: 800px;
-            padding: 1.5rem;
-            margin-top: 1rem;
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
         }
-        label { font-weight: bold; }
-        input[type="range"] { width: 100%; }
-        .output-value { font-weight: normal; color: #428bca; }
+        .control {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        label {
+            margin-bottom: 5px;
+        }
+        input[type="range"] {
+            width: 150px;
+        }
     </style>
 </head>
 <body>
-    <h1>Ideal Gas Law: PV=nRT</h1>
-    <div id="simulation-container">
-        <div id="gas-chamber"></div>
-    </div>
-    <div id="controls">
-        <div>
-            <label for="temp">Temperature (K): <span id="tempValue" class="output-value">298 K</span></label>
-            <input type="range" id="temp" min="100" max="600" value="298">
+    <div class="container">
+        <h1>Ideal Gas Law (PV=nRT)</h1>
+        <div id="chamber" class="chamber-container"></div>
+        <div class="controls">
+            <div class="control">
+                <label for="temp">Temperature (K): <span id="tempValue">298</span></label>
+                <input type="range" id="temp" min="100" max="600" value="298">
+            </div>
+            <div class="control">
+                <label for="moles">Moles (n): <span id="molesValue">50</span></label>
+                <input type="range" id="moles" min="10" max="100" value="50">
+            </div>
+             <div class="control">
+                <label for="pressure">Volume (L): <span id="volumeValue">22.4</span></label>
+                <input type="range" id="volume" min="5" max="45" value="22.4" step="0.1">
+            </div>
         </div>
-        <div>
-            <label for="pressure">Pressure (atm): <span id="pressureValue" class="output-value">1 atm</span></label>
-            <input type="range" id="pressure" min="0.5" max="5" value="1" step="0.1">
-        </div>
-        <div>
-            <label for="moles">Moles (n): <span id="molesValue" class="output-value">1 mol</span></label>
-            <input type="range" id="moles" min="0.5" max="3" value="1" step="0.1">
-        </div>
-        <div style="font-size: 1.25rem; text-align: center; margin-top: 1rem;">
-            Volume (V): <strong id="volumeValue" style="color: #5cb85c;">24.45 L</strong>
-        </div>
+        <p>Pressure: <span id="pressureValue">1.00</span> atm</p>
     </div>
 
     <script>
-        const chamber = document.getElementById('gas-chamber');
+        const chamber = document.getElementById('chamber');
         const tempInput = document.getElementById('temp');
-        const pressureInput = document.getElementById('pressure');
         const molesInput = document.getElementById('moles');
-        const tempValueSpan = document.getElementById('tempValue');
-        const pressureValueSpan = document.getElementById('pressureValue');
-        const molesValueSpan = document.getElementById('molesValue');
-        const volumeValueSpan = document.getElementById('volumeValue');
+        const volumeInput = document.getElementById('volume');
+
+        const tempValue = document.getElementById('tempValue');
+        const molesValue = document.getElementById('molesValue');
+        const volumeValue = document.getElementById('volumeValue');
+        const pressureValue = document.getElementById('pressureValue');
 
         const R = 0.0821; // Ideal gas constant
         let particles = [];
 
-        function updateGas() {
+        function updateValues() {
+            tempValue.textContent = tempInput.value;
+            molesValue.textContent = molesInput.value;
+            volumeValue.textContent = volumeInput.value;
+
+            const n = parseFloat(molesInput.value) / 50; // Scale for viz
             const T = parseFloat(tempInput.value);
-            const P = parseFloat(pressureInput.value);
-            const n = parseFloat(molesInput.value);
+            const V = parseFloat(volumeInput.value);
+            const P = (n * R * T) / V;
+            pressureValue.textContent = P.toFixed(2);
             
-            const V = (n * R * T) / P;
+            createParticles();
+            updateParticleSpeed();
+        }
 
-            tempValueSpan.textContent = `${T.toFixed(0)} K`;
-            pressureValueSpan.textContent = `${P.toFixed(1)} atm`;
-            molesValueSpan.textContent = `${n.toFixed(1)} mol`;
-            volumeValueSpan.textContent = `${V.toFixed(2)} L`;
-            
-            // Update chamber size based on volume
-            const scale = Math.max(150, Math.min(500, V * 15));
-            chamber.style.width = `${scale}px`;
-            chamber.style.height = `${scale}px`;
-
-            // Update particles
-            const numParticles = Math.floor(n * 20);
-            const speed = Math.sqrt(T / 100);
-
-            // Add/remove particles
-            while (particles.length < numParticles) {
+        function createParticles() {
+            const numParticles = parseInt(molesInput.value);
+            chamber.innerHTML = '';
+            particles = [];
+            for (let i = 0; i < numParticles; i++) {
                 const p = document.createElement('div');
                 p.className = 'particle';
                 chamber.appendChild(p);
                 particles.push({
                     element: p,
-                    x: Math.random() * (scale - 10),
-                    y: Math.random() * (scale - 10),
-                    vx: (Math.random() - 0.5) * speed,
-                    vy: (Math.random() - 0.5) * speed
+                    x: Math.random() * 390,
+                    y: Math.random() * 390,
+                    vx: (Math.random() - 0.5) * 2,
+                    vy: (Math.random() - 0.5) * 2
                 });
             }
-            while (particles.length > numParticles) {
-                const p = particles.pop();
-                chamber.removeChild(p.element);
-            }
-            
-            // Update speed for existing particles
-            particles.forEach(p => {
-                 p.vx = (p.vx / Math.abs(p.vx || 1)) * (Math.random() + 0.5) * speed;
-                 p.vy = (p.vy / Math.abs(p.vy || 1)) * (Math.random() + 0.5) * speed;
-            });
         }
         
-        function animate() {
-            const chamberWidth = chamber.clientWidth;
-            const chamberHeight = chamber.clientHeight;
+        function updateParticleSpeed() {
+             const T = parseFloat(tempInput.value);
+             const speedFactor = Math.sqrt(T) / 15;
+             particles.forEach(p => {
+                const currentSpeed = Math.sqrt(p.vx**2 + p.vy**2);
+                if(currentSpeed > 0) {
+                    p.vx = (p.vx / currentSpeed) * speedFactor * (Math.random() * 0.4 + 0.8);
+                    p.vy = (p.vy / currentSpeed) * speedFactor * (Math.random() * 0.4 + 0.8);
+                }
+             });
+        }
 
+        function animate() {
             particles.forEach(p => {
                 p.x += p.vx;
                 p.y += p.vy;
 
-                if (p.x <= 0 || p.x >= chamberWidth - 10) p.vx *= -1;
-                if (p.y <= 0 || p.y >= chamberHeight - 10) p.vy *= -1;
-                
-                p.x = Math.max(0, Math.min(p.x, chamberWidth - 10));
-                p.y = Math.max(0, Math.min(p.y, chamberHeight - 10));
+                if (p.x < 0 || p.x > 390) p.vx *= -1;
+                if (p.y < 0 || p.y > 390) p.vy *= -1;
 
-                p.element.style.transform = `translate(${p.x}px, ${p.y}px)`;
+                p.element.style.left = `${p.x}px`;
+                p.element.style.top = `${p.y}px`;
             });
-
             requestAnimationFrame(animate);
         }
 
-        tempInput.addEventListener('input', updateGas);
-        pressureInput.addEventListener('input', updateGas);
-        molesInput.addEventListener('input', updateGas);
-        
-        updateGas();
+        tempInput.addEventListener('input', updateValues);
+        molesInput.addEventListener('input', updateValues);
+        volumeInput.addEventListener('input', updateValues);
+
+        updateValues();
         animate();
     </script>
 </body>
 </html>
+
+    

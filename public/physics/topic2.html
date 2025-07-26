@@ -1,266 +1,142 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ohm's Law Simulation</title>
+    <title>Doppler Effect</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: transparent;
+            color: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #f0f0f0;
+        }
+        canvas {
+            border: 1px solid #555;
+            background-color: #1a202c;
+            display: block;
+            margin: 20px auto;
+            border-radius: 8px;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .control {
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin: 0;
-            padding: 2rem;
-            background-color: #f0f4f8;
-            color: #333;
-        }
-        #simulation-container {
-            position: relative;
-            width: 800px;
-            height: 400px;
-            background-color: #fff;
-            border: 2px solid #ccc;
-            border-radius: 8px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 2rem;
-            box-sizing: border-box;
-        }
-        #circuit {
-            width: 100%;
-            height: 100%;
-            position: relative;
-        }
-        .component {
-            position: absolute;
-            text-align: center;
-        }
-        #battery {
-            left: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 3rem;
-        }
-        #resistor {
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            width: 100px;
-            height: 40px;
-        }
-        #resistor-symbol {
-            width: 100%;
-            height: 100%;
-            border: 2px solid #333;
-            box-sizing: border-box;
-            border-radius: 4px;
-            background: #eee;
-        }
-        #ammeter {
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 80px;
-            height: 80px;
-            border: 3px solid #0000CD;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.5rem;
-            font-weight: bold;
-            background: #fff;
-        }
-        .wire {
-            position: absolute;
-            background-color: #FBBF24;
-            z-index: -1;
-            height: 5px;
-        }
-        .electron {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background-color: #4A90E2;
-            border-radius: 50%;
-            top: calc(50% - 5px);
-            left: 0;
-        }
-        #controls {
-            width: 800px;
-            padding: 1.5rem;
-            margin-top: 1rem;
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
         }
         label {
-            font-weight: bold;
+            margin-bottom: 5px;
         }
         input[type="range"] {
-            width: 100%;
-        }
-        .output-value {
-            font-weight: normal;
-            color: #C11B17;
+            width: 150px;
         }
     </style>
 </head>
 <body>
-    <h1>Ohm's Law</h1>
-    <div id="simulation-container">
-        <div id="circuit">
-            <div class="component" id="battery">🔋</div>
-            <div class="component" id="resistor"><div id="resistor-symbol"></div><span>R</span></div>
-            <div class="component" id="ammeter"><span>A</span></div>
-            <div class="wire" id="wire1"></div>
-            <div class="wire" id="wire2"></div>
-            <div class="wire" id="wire3"></div>
-            <div class="wire" id="wire4"></div>
-            <div id="electron-container"></div>
-        </div>
-    </div>
-    <div id="controls">
-        <div>
-            <label for="voltage">Voltage (V): <span id="voltageValue" class="output-value">12 V</span></label>
-            <input type="range" id="voltage" min="1" max="100" value="12">
-        </div>
-        <div>
-            <label for="resistance">Resistance (R): <span id="resistanceValue" class="output-value">100 Ω</span></label>
-            <input type="range" id="resistance" min="10" max="1000" value="100">
-        </div>
-        <div style="grid-column: 1 / -1; text-align: center; font-size: 1.25rem;">
-            Current (I): <strong id="currentValue" style="color: #0000CD;">0.12 A</strong>
+    <div class="container">
+        <h1>Doppler Effect</h1>
+        <canvas id="dopplerCanvas" width="600" height="400"></canvas>
+        <div class="controls">
+            <div class="control">
+                <label for="sourceSpeed">Source Speed: <span id="sourceSpeedValue">20</span></label>
+                <input type="range" id="sourceSpeed" min="-100" max="100" value="20">
+            </div>
+            <div class="control">
+                <label for="frequency">Frequency: <span id="frequencyValue">5</span></label>
+                <input type="range" id="frequency" min="1" max="10" value="5" step="0.1">
+            </div>
         </div>
     </div>
 
     <script>
-        const voltageInput = document.getElementById('voltage');
-        const resistanceInput = document.getElementById('resistance');
-        const voltageValueSpan = document.getElementById('voltageValue');
-        const resistanceValueSpan = document.getElementById('resistanceValue');
-        const currentValueSpan = document.getElementById('currentValue');
-        const ammeter = document.getElementById('ammeter');
-        const electronContainer = document.getElementById('electron-container');
+        const canvas = document.getElementById('dopplerCanvas');
+        const ctx = canvas.getContext('2d');
+        const sourceSpeedInput = document.getElementById('sourceSpeed');
+        const frequencyInput = document.getElementById('frequency');
+        const sourceSpeedValue = document.getElementById('sourceSpeedValue');
+        const frequencyValue = document.getElementById('frequencyValue');
 
-        function connectWires() {
-            const battery = document.getElementById('battery');
-            const resistor = document.getElementById('resistor');
-            const ammeter = document.getElementById('ammeter');
-            const wire1 = document.getElementById('wire1');
-            const wire2 = document.getElementById('wire2');
-            const wire3 = document.getElementById('wire3');
-            const wire4 = document.getElementById('wire4');
+        sourceSpeedInput.oninput = () => sourceSpeedValue.textContent = sourceSpeedInput.value;
+        frequencyInput.oninput = () => frequencyValue.textContent = frequencyInput.value;
 
-            const batteryRect = battery.getBoundingClientRect();
-            const resistorRect = resistor.getBoundingClientRect();
-            const ammeterRect = ammeter.getBoundingClientRect();
-            const containerRect = document.getElementById('circuit').getBoundingClientRect();
+        const observer = { x: canvas.width / 2, y: 50 };
+        const waveSpeed = 100;
+        let source = { x: canvas.width / 2, y: canvas.height - 50, speed: 20 };
+        let waves = [];
+        let time = 0;
 
-            const batteryX = batteryRect.left - containerRect.left + batteryRect.width / 2;
-            const batteryY = batteryRect.top - containerRect.top + batteryRect.height / 2;
-            const resistorX = resistorRect.left - containerRect.left + resistorRect.width / 2;
-            const resistorY = resistorRect.top - containerRect.top + resistorRect.height / 2;
-            const ammeterX = ammeterRect.left - containerRect.left + ammeterRect.width / 2;
-            const ammeterY = ammeterRect.top - containerRect.top + ammeterRect.height / 2;
-            
-            const topY = 50;
-            const bottomY = containerRect.height - 50;
+        function animate() {
+            let frequency = parseFloat(frequencyInput.value);
+            source.speed = parseFloat(sourceSpeedInput.value);
 
-            // From battery to top-left corner
-            wire1.style.top = `${topY}px`;
-            wire1.style.left = `${batteryX}px`;
-            wire1.style.width = `1px`; // Vertical part handled by border
-            wire1.style.height = `${batteryY - topY}px`;
-            wire1.style.borderLeft = "5px solid #FBBF24";
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Top wire
-            wire2.style.top = `${topY - 2.5}px`;
-            wire2.style.left = `${batteryX}px`;
-            wire2.style.width = `${ammeterX - batteryX}px`;
-            wire2.style.height = `5px`;
+            // Draw observer
+            ctx.beginPath();
+            ctx.arc(observer.x, observer.y, 10, 0, 2 * Math.PI);
+            ctx.fillStyle = '#4299e1';
+            ctx.fill();
+            ctx.font = '12px Arial';
+            ctx.fillStyle = '#f0f0f0';
+            ctx.fillText('Observer', observer.x - 25, observer.y - 15);
 
-            // From top-right corner to ammeter
-            wire3.style.top = `${topY}px`;
-            wire3.style.left = `${ammeterX}px`;
-            wire3.style.width = `1px`;
-            wire3.style.height = `${ammeterY - topY}px`;
-            wire3.style.borderLeft = "5px solid #FBBF24";
-            
-            // From ammeter to bottom-right
-            const wirePath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            
-            // Bottom wire, etc. It gets complex. We will simplify.
-            document.getElementById('wire4').style.display = 'none';
-
-        }
-        
-        // This is a simplified wire connection for looks
-        function simpleConnect() {
-            const w1 = document.getElementById('wire1');
-            const w2 = document.getElementById('wire2');
-            const w3 = document.getElementById('wire3');
-            const w4 = document.getElementById('wire4');
-            const battery = document.getElementById('battery');
-            const resistor = document.getElementById('resistor');
-            const ammeter = document.getElementById('ammeter');
-
-            w1.style.top = '175px'; w1.style.left = '60px'; w1.style.width = '280px';
-            w2.style.top = '175px'; w2.style.left = '420px'; w2.style.width = '240px';
-            w3.style.top = '75px'; w3.style.left = '60px'; w3.style.width = '600px';
-            w3.style.height = '100px'; w3.style.borderTop = '5px solid #FBBF24'; w3.style.borderLeft = '5px solid #FBBF24'; w3.style.borderRight = '5px solid #FBBF24'; w3.style.background='none';
-            w4.style.top = '175px'; w4.style.left = '60px'; w4.style.width = '600px';
-            w4.style.height = '100px'; w4.style.borderBottom = '5px solid #FBBF24'; w4.style.borderLeft = '5px solid #FBBF24'; w4.style.borderRight = '5px solid #FBBF24'; w4.style.background='none';
-        }
-
-
-        function updateCircuit() {
-            const voltage = parseFloat(voltageInput.value);
-            const resistance = parseFloat(resistanceInput.value);
-            const current = voltage / resistance;
-
-            voltageValueSpan.textContent = `${voltage.toFixed(1)} V`;
-            resistanceValueSpan.textContent = `${resistance.toFixed(0)} Ω`;
-            currentValueSpan.textContent = `${current.toFixed(2)} A`;
-            ammeter.firstElementChild.textContent = `${current.toFixed(2)}`;
-
-            // Electron flow animation
-            electronContainer.innerHTML = '';
-            const numElectrons = Math.min(20, Math.floor(current * 20));
-            const animationDuration = 10 / Math.max(0.1, current); // Faster for more current
-
-            for (let i = 0; i < numElectrons; i++) {
-                const electron = document.createElement('div');
-                electron.className = 'electron';
-                
-                const anim = document.createElement('style');
-                anim.innerHTML = `
-                    @keyframes moveElectron${i} {
-                        0% { left: 60px; top: 75px; }
-                        25% { left: 660px; top: 75px; }
-                        50% { left: 660px; top: 275px; }
-                        75% { left: 60px; top: 275px; }
-                        100% { left: 60px; top: 75px; }
-                    }
-                `;
-                document.head.appendChild(anim);
-
-                electron.style.animation = `moveElectron${i} ${animationDuration}s linear infinite`;
-                electron.style.animationDelay = `${(animationDuration / numElectrons) * i}s`;
-                electronContainer.appendChild(electron);
+            // Move source
+            source.x += source.speed * 0.016; // 60fps
+            if(source.x > canvas.width || source.x < 0) {
+              source.speed = -source.speed;
+              sourceSpeedInput.value = source.speed;
+              sourceSpeedValue.textContent = source.speed.toFixed(0);
             }
-        }
-        
-        simpleConnect();
-        voltageInput.addEventListener('input', updateCircuit);
-        resistanceInput.addEventListener('input', updateCircuit);
+            
 
-        updateCircuit();
+            // Emit new waves
+            if (time % (15 / frequency) < 1) {
+                waves.push({ x: source.x, y: source.y, radius: 0 });
+            }
+
+            // Draw source
+            ctx.beginPath();
+            ctx.arc(source.x, source.y, 10, 0, 2 * Math.PI);
+            ctx.fillStyle = '#f56565';
+            ctx.fill();
+
+            // Draw and expand waves
+            for (let i = waves.length - 1; i >= 0; i--) {
+                let wave = waves[i];
+                ctx.beginPath();
+                ctx.arc(wave.x, wave.y, wave.radius, 0, 2 * Math.PI);
+                ctx.strokeStyle = `rgba(255, 255, 255, ${1 - wave.radius / canvas.width})`;
+                ctx.stroke();
+                wave.radius += waveSpeed * 0.016;
+
+                if (wave.radius > canvas.width) {
+                    waves.splice(i, 1);
+                }
+            }
+            
+            time++;
+            requestAnimationFrame(animate);
+        }
+
+        animate();
     </script>
 </body>
 </html>
+
+    

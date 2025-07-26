@@ -1,177 +1,173 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Titration Simulation</title>
+    <title>Acid-Base Titration</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
             margin: 0;
-            padding: 2rem;
-            background-color: #f0f4f8;
-            color: #333;
+            padding: 20px;
+            background-color: transparent;
+            color: #f0f0f0;
         }
-        #simulation-container {
-            position: relative;
-            width: 800px;
-            height: 500px;
-            background-color: #fff;
-            border: 2px solid #ccc;
-            border-radius: 8px;
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #f0f0f0;
+        }
+        .simulation {
             display: flex;
             justify-content: center;
             align-items: flex-end;
-            gap: 5rem;
-            padding-bottom: 2rem;
+            gap: 50px;
+            margin: 20px 0;
+            height: 350px;
         }
-        #burette {
-            width: 40px;
-            height: 450px;
-            border: 2px solid #333;
+        .beaker {
+            width: 150px;
+            height: 200px;
+            border: 2px solid #ccc;
             border-top: none;
             position: relative;
-            background: linear-gradient(to top, #CF9FFF, #CF9FFF);
-            background-size: 100% 50%;
-            background-repeat: no-repeat;
-            background-position: bottom;
         }
-        #burette-liquid {
+        .liquid {
             position: absolute;
             bottom: 0;
             left: 0;
-            width: 100%;
-            background-color: #A020F0; /* Titrant color */
-            transition: height 0.2s linear;
+            right: 0;
+            background-color: #4299e1;
+            transition: height 0.5s, background-color 0.5s;
         }
-        .tick {
-            position: absolute;
-            left: -10px;
-            width: 8px;
-            height: 1px;
-            background: #333;
-        }
-        .tick-label {
-            position: absolute;
-            left: -35px;
-            font-size: 10px;
-        }
-        #flask {
-            width: 150px;
-            height: 200px;
+        .buret {
+            width: 30px;
+            height: 300px;
+            border: 2px solid #ccc;
             position: relative;
         }
-        #flask-base {
-            width: 150px;
-            height: 150px;
-            border: 2px solid #333;
-            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+        .titrant {
             position: absolute;
             bottom: 0;
-            background-color: rgba(173, 216, 230, 0.5); /* Analyte */
-            transition: background-color 0.5s;
+            left: 0;
+            right: 0;
+            background-color: #f56565;
+            transition: height 0.5s;
         }
-        #flask-neck {
-            width: 40px;
-            height: 80px;
-            border: 2px solid #333;
-            border-bottom: none;
-            position: absolute;
-            bottom: 120px;
-            left: 55px;
-            background-color: rgba(173, 216, 230, 0.5);
-            transition: background-color 0.5s;
+        .controls {
+            text-align: center;
         }
-        #controls {
-            width: 800px;
-            padding: 1.5rem;
-            margin-top: 1rem;
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #3182ce;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin: 5px;
         }
-        label { font-weight: bold; }
-        .output-value { font-weight: normal; color: #3a87ad; }
+        button:hover {
+            background-color: #2b6cb0;
+        }
+        #ph-value {
+          font-size: 1.5rem;
+          font-weight: bold;
+          color: #f0f0f0;
+        }
     </style>
 </head>
 <body>
-    <h1>Acid-Base Titration</h1>
-    <div id="simulation-container">
-        <div id="burette-stand">
-            <div id="burette">
-                 <div id="burette-liquid" style="height: 100%;"></div>
+    <div class="container">
+        <h1>Acid-Base Titration</h1>
+        <div class="simulation">
+            <div class="buret">
+                <div class="titrant" id="titrant-level" style="height: 100%;"></div>
+            </div>
+            <div class="beaker">
+                <div class="liquid" id="beaker-liquid" style="height: 50%;"></div>
             </div>
         </div>
-        <div id="flask">
-            <div id="flask-base"></div>
-            <div id="flask-neck"></div>
+        <div class="controls">
+            <p>pH: <span id="ph-value">1.00</span></p>
+            <button id="add-btn">Add 1 mL Titrant</button>
+            <button id="reset-btn">Reset</button>
         </div>
-    </div>
-    <div id="controls">
-        <label for="volume">Volume Added: <span id="volumeValue" class="output-value">0.0 mL</span></label>
-        <input type="range" id="volume" min="0" max="50" value="0" step="0.1">
-        <button id="resetButton" style="margin-top: 1rem;">Reset</button>
     </div>
 
     <script>
-        const volumeInput = document.getElementById('volume');
-        const volumeValueSpan = document.getElementById('volumeValue');
-        const buretteLiquid = document.getElementById('burette-liquid');
-        const flaskBase = document.getElementById('flask-base');
-        const flaskNeck = document.getElementById('flask-neck');
-        const resetButton = document.getElementById('resetButton');
-        const burette = document.getElementById('burette');
+        const titrantLevel = document.getElementById('titrant-level');
+        const beakerLiquid = document.getElementById('beaker-liquid');
+        const phValue = document.getElementById('ph-value');
+        const addBtn = document.getElementById('add-btn');
+        const resetBtn = document.getElementById('reset-btn');
 
-        const equivalencePoint = 25.0; // mL
-        const totalBuretteHeight = burette.clientHeight;
+        let acidVolume = 100; // mL
+        let acidConcentration = 0.1; // M
+        let titrantConcentration = 0.1; // M
+        let titrantAdded = 0; // mL
 
-        for(let i = 0; i <= 50; i += 5) {
-            const tick = document.createElement('div');
-            tick.className = 'tick';
-            tick.style.top = `${(i/50) * 100}%`;
-            burette.appendChild(tick);
-            const label = document.createElement('span');
-            label.className = 'tick-label';
-            label.textContent = 50 - i;
-            label.style.top = `calc(${(i/50) * 100}% - 5px)`;
-            burette.appendChild(label);
-        }
-
-        function updateTitration() {
-            const volume = parseFloat(volumeInput.value);
-            volumeValueSpan.textContent = `${volume.toFixed(1)} mL`;
+        function updateSimulation() {
+            const totalVolume = acidVolume + titrantAdded;
             
-            // Burette liquid level goes down as volume is added
-            const liquidHeightPercent = 100 - (volume / 50 * 100);
-            buretteLiquid.style.height = `${liquidHeightPercent}%`;
+            // Titrant level in buret
+            titrantLevel.style.height = `${100 - (titrantAdded / 50 * 100)}%`;
+
+            // Liquid level in beaker
+            beakerLiquid.style.height = `${(totalVolume / 200 * 100)}%`;
             
-            // Flask color change
-            const diff = Math.abs(volume - equivalencePoint);
-            if (diff < 0.2) { // At equivalence point
-                 flaskBase.style.backgroundColor = 'rgba(255, 182, 193, 0.8)'; // Pink
-                 flaskNeck.style.backgroundColor = 'rgba(255, 182, 193, 0.8)';
-            } else if (volume > equivalencePoint) { // Past equivalence point
-                 flaskBase.style.backgroundColor = 'rgba(255, 105, 180, 1.0)'; // Hot pink
-                 flaskNeck.style.backgroundColor = 'rgba(255, 105, 180, 1.0)';
+            // Calculate pH
+            let molesAcid = acidVolume * acidConcentration;
+            let molesBase = titrantAdded * titrantConcentration;
+            let pH;
+
+            if (molesBase < molesAcid) {
+                // Before equivalence point
+                const remainingMolesAcid = molesAcid - molesBase;
+                const newConcentration = remainingMolesAcid / totalVolume;
+                pH = -Math.log10(newConcentration);
+            } else if (molesBase === molesAcid) {
+                // Equivalence point
+                pH = 7;
+            } else {
+                // After equivalence point
+                const excessMolesBase = molesBase - molesAcid;
+                const newConcentration = excessMolesBase / totalVolume;
+                const pOH = -Math.log10(newConcentration);
+                pH = 14 - pOH;
             }
-             else { // Before equivalence point
-                 flaskBase.style.backgroundColor = 'rgba(173, 216, 230, 0.5)'; // Light blue
-                 flaskNeck.style.backgroundColor = 'rgba(173, 216, 230, 0.5)';
+
+            phValue.textContent = pH.toFixed(2);
+
+            // Update color based on pH and indicator (phenolphthalein)
+            if (pH < 8.2) {
+                beakerLiquid.style.backgroundColor = '#4299e1'; // Colorless (represented as blue)
+            } else if (pH >= 8.2 && pH < 10) {
+                beakerLiquid.style.backgroundColor = '#f687b3'; // Pink
+            } else {
+                beakerLiquid.style.backgroundColor = '#d53f8c'; // Fuchsia
             }
-        }
-        
-        function reset() {
-            volumeInput.value = 0;
-            updateTitration();
         }
 
-        volumeInput.addEventListener('input', updateTitration);
-        resetButton.addEventListener('click', reset);
-        
-        reset();
+        addBtn.addEventListener('click', () => {
+            if(titrantAdded < 50) {
+              titrantAdded += 1;
+              updateSimulation();
+            }
+        });
+
+        resetBtn.addEventListener('click', () => {
+            titrantAdded = 0;
+            updateSimulation();
+        });
+
+        updateSimulation();
     </script>
 </body>
 </html>
+
+    
