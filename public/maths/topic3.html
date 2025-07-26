@@ -3,92 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maths - Function Grapher</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Pythagorean Theorem Visualization</title>
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        #graph-canvas { border: 1px solid #ccc; }
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 2rem;
+            background-color: #f0f4f8;
+            color: #333;
+        }
+        #simulation-container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        canvas { display: block; }
+        #controls {
+            width: 800px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            background-color: #ffffff;
+            border-radius: 8px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        label { font-weight: bold; }
+        input[type="range"] { width: 100%; }
+        #equation {
+            grid-column: 1 / -1;
+            text-align: center;
+            font-size: 2rem;
+            font-family: 'Times New Roman', Times, serif;
+        }
+        .a-color { color: #d9534f; }
+        .b-color { color: #5bc0de; }
+        .c-color { color: #5cb85c; }
+
     </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-8">
-    <div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
-        <h1 class="text-3xl font-bold mb-4 text-center text-green-500">Function Grapher</h1>
-        <p class="mb-6 text-center text-gray-600 dark:text-gray-400">Enter a JavaScript function of x to see it plotted on the graph.</p>
-
-        <div class="flex flex-col md:flex-row items-center justify-center gap-8">
-            <div class="w-full md:w-1/3">
-                <div class="mb-4">
-                    <label for="functionInput" class="block text-sm font-medium">y = f(x) =</label>
-                    <input type="text" id="functionInput" value="Math.sin(x) * 2" class="w-full p-2 border rounded dark:bg-gray-700">
-                </div>
-                <button id="plotButton" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Plot Function</button>
-                <p id="error" class="text-red-500 mt-2"></p>
-            </div>
-            <div>
-                <canvas id="graph-canvas" width="400" height="300"></canvas>
-            </div>
+<body>
+    <h1>Pythagorean Theorem: a² + b² = c²</h1>
+    <div id="simulation-container">
+        <canvas id="simulationCanvas" width="800" height="600"></canvas>
+    </div>
+    <div id="controls">
+        <div>
+            <label for="a">Side a: <span id="aValue" class="a-color">150</span></label>
+            <input type="range" id="a" min="50" max="300" value="150">
+        </div>
+        <div>
+            <label for="b">Side b: <span id="bValue" class="b-color">200</span></label>
+            <input type="range" id="b" min="50" max="400" value="200">
+        </div>
+        <div id="equation">
+            <span class="a-color">a²</span> + <span class="b-color">b²</span> = <span class="c-color">c²</span>
+            <br>
+            <span id="calculation"></span>
         </div>
     </div>
 
     <script>
-        const canvas = document.getElementById('graph-canvas');
+        const canvas = document.getElementById('simulationCanvas');
         const ctx = canvas.getContext('2d');
-        const functionInput = document.getElementById('functionInput');
-        const plotButton = document.getElementById('plotButton');
-        const errorDisplay = document.getElementById('error');
+        const aInput = document.getElementById('a');
+        const bInput = document.getElementById('b');
+        const aValueSpan = document.getElementById('aValue');
+        const bValueSpan = document.getElementById('bValue');
+        const calculationSpan = document.getElementById('calculation');
         
-        const width = canvas.width;
-        const height = canvas.height;
-        const scaleX = 40;
-        const scaleY = 40;
-        const originX = width / 2;
-        const originY = height / 2;
+        const originX = 150;
+        const originY = 450;
+        
+        function draw() {
+            const a = parseFloat(aInput.value);
+            const b = parseFloat(bInput.value);
+            const c = Math.sqrt(a*a + b*b);
 
-        function drawAxes() {
-            ctx.clearRect(0, 0, width, height);
-            ctx.beginPath();
-            // X-Axis
-            ctx.moveTo(0, originY);
-            ctx.lineTo(width, originY);
-            // Y-Axis
-            ctx.moveTo(originX, 0);
-            ctx.lineTo(originX, height);
-            ctx.strokeStyle = '#ccc';
-            ctx.stroke();
-        }
-
-        function plotFunction() {
-            drawAxes();
-            errorDisplay.textContent = '';
-            const funcStr = functionInput.value;
+            aValueSpan.textContent = a.toFixed(0);
+            bValueSpan.textContent = b.toFixed(0);
             
-            try {
-                const func = new Function('x', `return ${funcStr}`);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw square for a
+            ctx.fillStyle = 'rgba(217, 83, 79, 0.5)';
+            ctx.fillRect(originX, originY - a, -a, a);
+            
+            // Draw square for b
+            ctx.fillStyle = 'rgba(91, 192, 222, 0.5)';
+            ctx.fillRect(originX, originY, b, b);
 
-                ctx.beginPath();
-                ctx.strokeStyle = '#10b981';
-                ctx.lineWidth = 2;
+            // Draw the triangle
+            ctx.beginPath();
+            ctx.moveTo(originX, originY); // Origin
+            ctx.lineTo(originX, originY - a); // Up side a
+            ctx.lineTo(originX + b, originY); // Right side b
+            ctx.closePath();
+            ctx.fillStyle = '#f0ad4e';
+            ctx.fill();
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.stroke();
 
-                for (let i = 0; i < width; i++) {
-                    const x = (i - originX) / scaleX;
-                    const y = func(x);
-                    const pixelY = originY - y * scaleY;
-                    if (i === 0) {
-                        ctx.moveTo(i, pixelY);
-                    } else {
-                        ctx.lineTo(i, pixelY);
-                    }
-                }
-                ctx.stroke();
-            } catch (e) {
-                errorDisplay.textContent = 'Invalid function. Please use valid JavaScript Math functions.';
-                console.error(e);
-            }
+            // Draw square for c
+            ctx.save();
+            ctx.translate(originX, originY - a);
+            ctx.rotate(Math.atan2(b, a));
+            ctx.fillStyle = 'rgba(92, 184, 92, 0.5)';
+            ctx.fillRect(0, 0, c, c);
+            ctx.restore();
+
+            // Draw labels
+            ctx.fillStyle = "#000";
+            ctx.font = "bold 16px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText("a", originX - 20, originY - a / 2);
+            ctx.fillText("b", originX + b / 2, originY + 20);
+            ctx.save();
+            ctx.translate(originX + b / 2, originY - a / 2);
+            ctx.rotate(-Math.atan(a/b));
+            ctx.fillText("c", 0, -10);
+            ctx.restore();
+
+            // Update equation
+            calculationSpan.innerHTML = 
+                `<span class="a-color">${a.toFixed(0)}²</span> + <span class="b-color">${b.toFixed(0)}²</span> = <span class="c-color">${c.toFixed(0)}²</span><br>` +
+                `<span class="a-color">${(a*a).toFixed(0)}</span> + <span class="b-color">${(b*b).toFixed(0)}</span> = <span class="c-color">${(c*c).toFixed(0)}</span>`;
         }
 
-        plotButton.addEventListener('click', plotFunction);
-
-        plotFunction(); // Initial plot
+        aInput.addEventListener('input', draw);
+        bInput.addEventListener('input', draw);
+        window.addEventListener('load', draw);
     </script>
 </body>
 </html>

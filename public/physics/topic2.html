@@ -3,109 +3,264 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Physics - Projectile Motion</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Ohm's Law Simulation</title>
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        #projectile-canvas {
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><rect width="20" height="20" fill="%23f3f4f6" /><rect width="1" height="20" fill="%23e5e7eb" /><rect width="20" height="1" fill="%23e5e7eb" /></svg>');
-            border-radius: 0.5rem;
-            border: 1px solid #d1d5db;
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 2rem;
+            background-color: #f0f4f8;
+            color: #333;
+        }
+        #simulation-container {
+            position: relative;
+            width: 800px;
+            height: 400px;
+            background-color: #fff;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+        #circuit {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        .component {
+            position: absolute;
+            text-align: center;
+        }
+        #battery {
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 3rem;
+        }
+        #resistor {
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 40px;
+        }
+        #resistor-symbol {
+            width: 100%;
+            height: 100%;
+            border: 2px solid #333;
+            box-sizing: border-box;
+            border-radius: 4px;
+            background: #eee;
+        }
+        #ammeter {
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 80px;
+            height: 80px;
+            border: 3px solid #0000CD;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: #fff;
+        }
+        .wire {
+            position: absolute;
+            background-color: #FBBF24;
+            z-index: -1;
+            height: 5px;
+        }
+        .electron {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #4A90E2;
+            border-radius: 50%;
+            top: calc(50% - 5px);
+            left: 0;
+        }
+        #controls {
+            width: 800px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        label {
+            font-weight: bold;
+        }
+        input[type="range"] {
+            width: 100%;
+        }
+        .output-value {
+            font-weight: normal;
+            color: #C11B17;
         }
     </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-8">
-    <div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
-        <h1 class="text-3xl font-bold mb-4 text-center text-pink-500">Projectile Motion Simulator</h1>
-        <p class="mb-6 text-center text-gray-600 dark:text-gray-400">Set the initial velocity and angle to launch a projectile.</p>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
-            <div class="md:col-span-1 space-y-4">
-                <div>
-                    <label for="velocity" class="block text-sm font-medium">Initial Velocity (m/s): <span id="velocityValue">50</span></label>
-                    <input type="range" id="velocity" min="10" max="100" step="1" value="50" class="w-full">
-                </div>
-                <div>
-                    <label for="angle" class="block text-sm font-medium">Angle (°): <span id="angleValue">45</span></label>
-                    <input type="range" id="angle" min="0" max="90" step="1" value="45" class="w-full">
-                </div>
-                <button id="launchButton" class="bg-pink-500 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded-lg w-full">Launch!</button>
-            </div>
-            <div class="md:col-span-2 flex justify-center">
-                <canvas id="projectile-canvas" width="500" height="300"></canvas>
-            </div>
+<body>
+    <h1>Ohm's Law</h1>
+    <div id="simulation-container">
+        <div id="circuit">
+            <div class="component" id="battery">🔋</div>
+            <div class="component" id="resistor"><div id="resistor-symbol"></div><span>R</span></div>
+            <div class="component" id="ammeter"><span>A</span></div>
+            <div class="wire" id="wire1"></div>
+            <div class="wire" id="wire2"></div>
+            <div class="wire" id="wire3"></div>
+            <div class="wire" id="wire4"></div>
+            <div id="electron-container"></div>
+        </div>
+    </div>
+    <div id="controls">
+        <div>
+            <label for="voltage">Voltage (V): <span id="voltageValue" class="output-value">12 V</span></label>
+            <input type="range" id="voltage" min="1" max="100" value="12">
+        </div>
+        <div>
+            <label for="resistance">Resistance (R): <span id="resistanceValue" class="output-value">100 Ω</span></label>
+            <input type="range" id="resistance" min="10" max="1000" value="100">
+        </div>
+        <div style="grid-column: 1 / -1; text-align: center; font-size: 1.25rem;">
+            Current (I): <strong id="currentValue" style="color: #0000CD;">0.12 A</strong>
         </div>
     </div>
 
     <script>
-        const canvas = document.getElementById('projectile-canvas');
-        const ctx = canvas.getContext('2d');
-        const velocitySlider = document.getElementById('velocity');
-        const angleSlider = document.getElementById('angle');
-        const launchButton = document.getElementById('launchButton');
-        const velocityValue = document.getElementById('velocityValue');
-        const angleValue = document.getElementById('angleValue');
+        const voltageInput = document.getElementById('voltage');
+        const resistanceInput = document.getElementById('resistance');
+        const voltageValueSpan = document.getElementById('voltageValue');
+        const resistanceValueSpan = document.getElementById('resistanceValue');
+        const currentValueSpan = document.getElementById('currentValue');
+        const ammeter = document.getElementById('ammeter');
+        const electronContainer = document.getElementById('electron-container');
 
-        const g = 9.8;
-        let particles = [];
+        function connectWires() {
+            const battery = document.getElementById('battery');
+            const resistor = document.getElementById('resistor');
+            const ammeter = document.getElementById('ammeter');
+            const wire1 = document.getElementById('wire1');
+            const wire2 = document.getElementById('wire2');
+            const wire3 = document.getElementById('wire3');
+            const wire4 = document.getElementById('wire4');
 
-        velocitySlider.addEventListener('input', e => velocityValue.textContent = e.target.value);
-        angleSlider.addEventListener('input', e => angleValue.textContent = e.target.value);
-        launchButton.addEventListener('click', launch);
+            const batteryRect = battery.getBoundingClientRect();
+            const resistorRect = resistor.getBoundingClientRect();
+            const ammeterRect = ammeter.getBoundingClientRect();
+            const containerRect = document.getElementById('circuit').getBoundingClientRect();
 
-        function launch() {
-            const v = parseFloat(velocitySlider.value);
-            const angle = parseFloat(angleSlider.value) * Math.PI / 180;
-            const color = `hsl(${Math.random() * 360}, 70%, 60%)`;
+            const batteryX = batteryRect.left - containerRect.left + batteryRect.width / 2;
+            const batteryY = batteryRect.top - containerRect.top + batteryRect.height / 2;
+            const resistorX = resistorRect.left - containerRect.left + resistorRect.width / 2;
+            const resistorY = resistorRect.top - containerRect.top + resistorRect.height / 2;
+            const ammeterX = ammeterRect.left - containerRect.left + ammeterRect.width / 2;
+            const ammeterY = ammeterRect.top - containerRect.top + ammeterRect.height / 2;
             
-            particles.push({
-                x: 0,
-                y: 0,
-                vx: v * Math.cos(angle),
-                vy: v * Math.sin(angle),
-                path: [],
-                color: color
-            });
-            if (particles.length > 5) particles.shift();
+            const topY = 50;
+            const bottomY = containerRect.height - 50;
+
+            // From battery to top-left corner
+            wire1.style.top = `${topY}px`;
+            wire1.style.left = `${batteryX}px`;
+            wire1.style.width = `1px`; // Vertical part handled by border
+            wire1.style.height = `${batteryY - topY}px`;
+            wire1.style.borderLeft = "5px solid #FBBF24";
+
+            // Top wire
+            wire2.style.top = `${topY - 2.5}px`;
+            wire2.style.left = `${batteryX}px`;
+            wire2.style.width = `${ammeterX - batteryX}px`;
+            wire2.style.height = `5px`;
+
+            // From top-right corner to ammeter
+            wire3.style.top = `${topY}px`;
+            wire3.style.left = `${ammeterX}px`;
+            wire3.style.width = `1px`;
+            wire3.style.height = `${ammeterY - topY}px`;
+            wire3.style.borderLeft = "5px solid #FBBF24";
+            
+            // From ammeter to bottom-right
+            const wirePath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            
+            // Bottom wire, etc. It gets complex. We will simplify.
+            document.getElementById('wire4').style.display = 'none';
+
+        }
+        
+        // This is a simplified wire connection for looks
+        function simpleConnect() {
+            const w1 = document.getElementById('wire1');
+            const w2 = document.getElementById('wire2');
+            const w3 = document.getElementById('wire3');
+            const w4 = document.getElementById('wire4');
+            const battery = document.getElementById('battery');
+            const resistor = document.getElementById('resistor');
+            const ammeter = document.getElementById('ammeter');
+
+            w1.style.top = '175px'; w1.style.left = '60px'; w1.style.width = '280px';
+            w2.style.top = '175px'; w2.style.left = '420px'; w2.style.width = '240px';
+            w3.style.top = '75px'; w3.style.left = '60px'; w3.style.width = '600px';
+            w3.style.height = '100px'; w3.style.borderTop = '5px solid #FBBF24'; w3.style.borderLeft = '5px solid #FBBF24'; w3.style.borderRight = '5px solid #FBBF24'; w3.style.background='none';
+            w4.style.top = '175px'; w4.style.left = '60px'; w4.style.width = '600px';
+            w4.style.height = '100px'; w4.style.borderBottom = '5px solid #FBBF24'; w4.style.borderLeft = '5px solid #FBBF24'; w4.style.borderRight = '5px solid #FBBF24'; w4.style.background='none';
         }
 
-        function animate() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            particles.forEach(p => {
-                p.path.push({x: p.x, y: p.y});
+        function updateCircuit() {
+            const voltage = parseFloat(voltageInput.value);
+            const resistance = parseFloat(resistanceInput.value);
+            const current = voltage / resistance;
 
-                p.vy -= g * 0.1; // time step
-                p.x += p.vx * 0.1;
-                p.y += p.vy * 0.1;
+            voltageValueSpan.textContent = `${voltage.toFixed(1)} V`;
+            resistanceValueSpan.textContent = `${resistance.toFixed(0)} Ω`;
+            currentValueSpan.textContent = `${current.toFixed(2)} A`;
+            ammeter.firstElementChild.textContent = `${current.toFixed(2)}`;
 
-                if (p.y < 0) { // ground
-                    p.y = 0;
-                    p.vy = 0;
-                    p.vx = 0;
-                }
+            // Electron flow animation
+            electronContainer.innerHTML = '';
+            const numElectrons = Math.min(20, Math.floor(current * 20));
+            const animationDuration = 10 / Math.max(0.1, current); // Faster for more current
 
-                // Draw path
-                ctx.beginPath();
-                ctx.moveTo(p.path[0].x, canvas.height - p.path[0].y);
-                p.path.forEach(pos => {
-                    ctx.lineTo(pos.x, canvas.height - pos.y);
-                });
-                ctx.strokeStyle = p.color;
-                ctx.lineWidth = 2;
-                ctx.stroke();
+            for (let i = 0; i < numElectrons; i++) {
+                const electron = document.createElement('div');
+                electron.className = 'electron';
+                
+                const anim = document.createElement('style');
+                anim.innerHTML = `
+                    @keyframes moveElectron${i} {
+                        0% { left: 60px; top: 75px; }
+                        25% { left: 660px; top: 75px; }
+                        50% { left: 660px; top: 275px; }
+                        75% { left: 60px; top: 275px; }
+                        100% { left: 60px; top: 75px; }
+                    }
+                `;
+                document.head.appendChild(anim);
 
-                // Draw projectile
-                ctx.beginPath();
-                ctx.arc(p.x, canvas.height - p.y, 5, 0, 2 * Math.PI);
-                ctx.fillStyle = p.color;
-                ctx.fill();
-            });
-
-            requestAnimationFrame(animate);
+                electron.style.animation = `moveElectron${i} ${animationDuration}s linear infinite`;
+                electron.style.animationDelay = `${(animationDuration / numElectrons) * i}s`;
+                electronContainer.appendChild(electron);
+            }
         }
+        
+        simpleConnect();
+        voltageInput.addEventListener('input', updateCircuit);
+        resistanceInput.addEventListener('input', updateCircuit);
 
-        animate();
+        updateCircuit();
     </script>
 </body>
 </html>

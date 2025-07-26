@@ -3,89 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chemistry - pH Scale</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Atomic Structure Simulation</title>
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .ph-scale-container {
+        body {
+            font-family: Arial, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
+            margin: 0;
+            padding: 2rem;
+            background-color: #f0f4f8;
+            color: #333;
         }
-        .ph-scale {
-            width: 100%;
-            height: 50px;
-            background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet);
-            border-radius: 10px;
+        #simulation-container {
+            width: 800px;
+            height: 500px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #atom-container {
             position: relative;
+            width: 400px;
+            height: 400px;
         }
-        .ph-indicator {
+        #nucleus {
             position: absolute;
-            bottom: -10px;
-            width: 2px;
-            height: 70px;
-            background-color: black;
-            transform: translateX(-1px);
-            transition: left 0.3s ease;
+            top: 50%;
+            left: 50%;
+            width: 40px;
+            height: 40px;
+            background: #555;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: white;
+            font-size: 10px;
         }
-        .ph-value {
-            margin-top: 15px;
-            font-size: 1.5em;
-            font-weight: bold;
+        .shell {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            border: 2px solid #ccc;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
         }
+        .electron {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #007bff;
+            border-radius: 50%;
+            transform-origin: center;
+        }
+        #controls {
+            width: 800px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        label { font-weight: bold; }
+        .output-value { font-weight: normal; color: #5cb85c; }
     </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-8">
-    <div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
-        <h1 class="text-3xl font-bold mb-4 text-center text-purple-500">Interactive pH Scale</h1>
-        <p class="mb-6 text-center text-gray-600 dark:text-gray-400">Select a substance to see its approximate pH value on the scale.</p>
-        
-        <div class="mb-6 text-center">
-            <select id="substanceSelector" class="p-2 rounded-lg border-2 border-gray-300 dark:bg-gray-700 dark:border-gray-600">
-                <option value="7">Water</option>
-                <option value="2">Lemon Juice</option>
-                <option value="12">Bleach</option>
-                <option value="9">Baking Soda</option>
-                <option value="5.6">Coffee</option>
-                <option value="1">Stomach Acid</option>
-            </select>
-        </div>
-
-        <div class="ph-scale-container">
-            <div class="ph-scale">
-                <div id="phIndicator" class="ph-indicator" style="left: 50%;"></div>
+<body>
+    <h1>Bohr Model of the Atom</h1>
+    <div id="simulation-container">
+        <div id="atom-container">
+            <div id="nucleus">
+                <span id="protons-label"></span>
+                <span id="neutrons-label"></span>
             </div>
-            <div class="flex justify-between w-full text-xs px-1 mt-1">
-                <span>0</span>
-                <span>7</span>
-                <span>14</span>
-            </div>
-            <div id="phValue" class="ph-value">pH: 7.0</div>
-            <div id="phDescription" class="mt-2 text-gray-500 dark:text-gray-400">Neutral</div>
         </div>
+    </div>
+    <div id="controls">
+        <label for="protons">Number of Protons (Atomic Number): <span id="protonsValue" class="output-value">1</span></label>
+        <input type="range" id="protons" min="1" max="18" value="1">
     </div>
 
     <script>
-        const selector = document.getElementById('substanceSelector');
-        const indicator = document.getElementById('phIndicator');
-        const phValueDisplay = document.getElementById('phValue');
-        const phDescriptionDisplay = document.getElementById('phDescription');
+        const atomContainer = document.getElementById('atom-container');
+        const nucleusLabelP = document.getElementById('protons-label');
+        const nucleusLabelN = document.getElementById('neutrons-label');
+        const protonsInput = document.getElementById('protons');
+        const protonsValueSpan = document.getElementById('protonsValue');
+        
+        // Electron shell capacities
+        const shellCaps = [2, 8, 8];
 
-        selector.addEventListener('change', (e) => {
-            const ph = parseFloat(e.target.value);
-            const percentage = (ph / 14) * 100;
+        function createAtom() {
+            const protons = parseInt(protonsInput.value);
+            const neutrons = protons; // Simplification
+            let electrons = protons;
             
-            indicator.style.left = percentage + '%';
-            phValueDisplay.textContent = 'pH: ' + ph.toFixed(1);
+            protonsValueSpan.textContent = protons;
+            nucleusLabelP.textContent = `${protons} p+`;
+            nucleusLabelN.textContent = `${neutrons} n`;
+            
+            // Clear previous atom
+            atomContainer.querySelectorAll('.shell, .electron').forEach(el => el.remove());
+            
+            let remainingElectrons = electrons;
+            
+            for (let i = 0; i < shellCaps.length; i++) {
+                if (remainingElectrons <= 0) break;
+                
+                const shellSize = 100 + i * 80;
+                const shell = document.createElement('div');
+                shell.className = 'shell';
+                shell.style.width = `${shellSize}px`;
+                shell.style.height = `${shellSize}px`;
+                atomContainer.appendChild(shell);
+                
+                const electronsInShell = Math.min(remainingElectrons, shellCaps[i]);
+                remainingElectrons -= electronsInShell;
+                
+                for (let j = 0; j < electronsInShell; j++) {
+                    const electron = document.createElement('div');
+                    electron.className = 'electron';
+                    
+                    // Position electrons on the shell
+                    const angle = (j / electronsInShell) * 2 * Math.PI;
+                    const radius = shellSize / 2;
+                    const x = 200 + radius * Math.cos(angle) - 6;
+                    const y = 200 + radius * Math.sin(angle) - 6;
+                    
+                    electron.style.left = `${x}px`;
+                    electron.style.top = `${y}px`;
 
-            if (ph < 7) {
-                phDescriptionDisplay.textContent = 'Acidic';
-            } else if (ph > 7) {
-                phDescriptionDisplay.textContent = 'Alkaline';
-            } else {
-                phDescriptionDisplay.textContent = 'Neutral';
+                    const anim = document.createElement('style');
+                    anim.innerHTML = `
+                        @keyframes rotate${i}${j} {
+                            from { transform: rotate(0deg) translateX(${radius}px) rotate(0deg); }
+                            to   { transform: rotate(360deg) translateX(${radius}px) rotate(-360deg); }
+                        }
+                    `;
+                    document.head.appendChild(anim);
+                    
+                    const electronWrapper = document.createElement('div');
+                    electronWrapper.style.position = 'absolute';
+                    electronWrapper.style.top = '0';
+                    electronWrapper.style.left = '0';
+                    electronWrapper.style.width = '400px';
+                    electronWrapper.style.height = '400px';
+                    electronWrapper.style.transformOrigin = '200px 200px';
+                    
+                    const speed = 5 + i * 2; // Outer electrons are slower
+                    electronWrapper.style.animation = `rotate${i}${j} ${speed}s linear infinite`;
+                    electronWrapper.style.animationDelay = `${(j/electronsInShell)*speed}s`;
+
+                    electronWrapper.appendChild(electron);
+                    atomContainer.appendChild(electronWrapper);
+                }
             }
-        });
+        }
+
+        protonsInput.addEventListener('input', createAtom);
+        window.addEventListener('load', createAtom);
     </script>
 </body>
 </html>

@@ -3,53 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chemistry - Molecular Structure</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Gas Laws Simulation</title>
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .scene {
-            width: 300px;
-            height: 300px;
-            perspective: 600px;
-            margin: auto;
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 2rem;
+            background-color: #f0f4f8;
+            color: #333;
         }
-        .molecule {
-            width: 100%;
-            height: 100%;
+        #simulation-container {
+            width: 800px;
+            height: 500px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #gas-chamber {
             position: relative;
-            transform-style: preserve-3d;
-            animation: rotate 20s infinite linear;
+            width: 400px;
+            height: 400px;
+            background-color: #ffffff;
+            border: 5px solid #333;
+            transition: width 0.5s, height 0.5s;
+            overflow: hidden;
         }
-        .atom {
+        .particle {
             position: absolute;
-            width: 50px;
-            height: 50px;
+            width: 10px;
+            height: 10px;
+            background-color: #d9534f;
             border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, white, black);
         }
-        .oxygen { background: radial-gradient(circle at 30% 30%, white, red); transform: translateZ(0px); top: 125px; left: 125px; }
-        .hydrogen1 { background: radial-gradient(circle at 30% 30%, white, gray); transform: rotateY(104.5deg) translateZ(80px); top: 80px; left: 80px; width: 40px; height: 40px; }
-        .hydrogen2 { background: radial-gradient(circle at 30% 30%, white, gray); transform: rotateY(-104.5deg) translateZ(80px); top: 180px; left: 180px; width: 40px; height: 40px;}
-
-        @keyframes rotate {
-            from { transform: rotateX(0deg) rotateY(0deg); }
-            to { transform: rotateX(360deg) rotateY(360deg); }
+        #controls {
+            width: 800px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
+        label { font-weight: bold; }
+        input[type="range"] { width: 100%; }
+        .output-value { font-weight: normal; color: #428bca; }
     </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-8">
-    <div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
-        <h1 class="text-3xl font-bold mb-4 text-center text-green-500">Interactive Water Molecule (H₂O)</h1>
-        <p class="mb-6 text-center text-gray-600 dark:text-gray-400">A 3D representation of a water molecule. The molecule is continuously rotating.</p>
-
-        <div class="scene">
-            <div class="molecule" id="molecule">
-                <div class="atom oxygen"></div>
-                <div class="atom hydrogen1"></div>
-                <div class="atom hydrogen2"></div>
-            </div>
-        </div>
-        <p class="text-center mt-4 text-sm text-gray-500">The molecule is rotating automatically. You can also drag to rotate it (feature coming soon).</p>
+<body>
+    <h1>Ideal Gas Law: PV=nRT</h1>
+    <div id="simulation-container">
+        <div id="gas-chamber"></div>
     </div>
+    <div id="controls">
+        <div>
+            <label for="temp">Temperature (K): <span id="tempValue" class="output-value">298 K</span></label>
+            <input type="range" id="temp" min="100" max="600" value="298">
+        </div>
+        <div>
+            <label for="pressure">Pressure (atm): <span id="pressureValue" class="output-value">1 atm</span></label>
+            <input type="range" id="pressure" min="0.5" max="5" value="1" step="0.1">
+        </div>
+        <div>
+            <label for="moles">Moles (n): <span id="molesValue" class="output-value">1 mol</span></label>
+            <input type="range" id="moles" min="0.5" max="3" value="1" step="0.1">
+        </div>
+        <div style="font-size: 1.25rem; text-align: center; margin-top: 1rem;">
+            Volume (V): <strong id="volumeValue" style="color: #5cb85c;">24.45 L</strong>
+        </div>
+    </div>
+
+    <script>
+        const chamber = document.getElementById('gas-chamber');
+        const tempInput = document.getElementById('temp');
+        const pressureInput = document.getElementById('pressure');
+        const molesInput = document.getElementById('moles');
+        const tempValueSpan = document.getElementById('tempValue');
+        const pressureValueSpan = document.getElementById('pressureValue');
+        const molesValueSpan = document.getElementById('molesValue');
+        const volumeValueSpan = document.getElementById('volumeValue');
+
+        const R = 0.0821; // Ideal gas constant
+        let particles = [];
+
+        function updateGas() {
+            const T = parseFloat(tempInput.value);
+            const P = parseFloat(pressureInput.value);
+            const n = parseFloat(molesInput.value);
+            
+            const V = (n * R * T) / P;
+
+            tempValueSpan.textContent = `${T.toFixed(0)} K`;
+            pressureValueSpan.textContent = `${P.toFixed(1)} atm`;
+            molesValueSpan.textContent = `${n.toFixed(1)} mol`;
+            volumeValueSpan.textContent = `${V.toFixed(2)} L`;
+            
+            // Update chamber size based on volume
+            const scale = Math.max(150, Math.min(500, V * 15));
+            chamber.style.width = `${scale}px`;
+            chamber.style.height = `${scale}px`;
+
+            // Update particles
+            const numParticles = Math.floor(n * 20);
+            const speed = Math.sqrt(T / 100);
+
+            // Add/remove particles
+            while (particles.length < numParticles) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                chamber.appendChild(p);
+                particles.push({
+                    element: p,
+                    x: Math.random() * (scale - 10),
+                    y: Math.random() * (scale - 10),
+                    vx: (Math.random() - 0.5) * speed,
+                    vy: (Math.random() - 0.5) * speed
+                });
+            }
+            while (particles.length > numParticles) {
+                const p = particles.pop();
+                chamber.removeChild(p.element);
+            }
+            
+            // Update speed for existing particles
+            particles.forEach(p => {
+                 p.vx = (p.vx / Math.abs(p.vx || 1)) * (Math.random() + 0.5) * speed;
+                 p.vy = (p.vy / Math.abs(p.vy || 1)) * (Math.random() + 0.5) * speed;
+            });
+        }
+        
+        function animate() {
+            const chamberWidth = chamber.clientWidth;
+            const chamberHeight = chamber.clientHeight;
+
+            particles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+
+                if (p.x <= 0 || p.x >= chamberWidth - 10) p.vx *= -1;
+                if (p.y <= 0 || p.y >= chamberHeight - 10) p.vy *= -1;
+                
+                p.x = Math.max(0, Math.min(p.x, chamberWidth - 10));
+                p.y = Math.max(0, Math.min(p.y, chamberHeight - 10));
+
+                p.element.style.transform = `translate(${p.x}px, ${p.y}px)`;
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        tempInput.addEventListener('input', updateGas);
+        pressureInput.addEventListener('input', updateGas);
+        molesInput.addEventListener('input', updateGas);
+        
+        updateGas();
+        animate();
+    </script>
 </body>
 </html>

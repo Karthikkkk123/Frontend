@@ -3,96 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maths - Pythagorean Theorem</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Sine and Cosine Wave Simulation</title>
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .triangle-container {
-            position: relative;
-            width: 300px;
-            height: 300px;
-            margin: auto;
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 2rem;
+            background-color: #f0f4f8;
+            color: #333;
         }
-        #triangle-canvas {
-            border: 1px solid #ccc;
+        #simulation-container {
+            width: 800px;
+            height: 400px;
+            background-color: #ffffff;
+            border: 2px solid #ccc;
+            border-radius: 8px;
         }
+        #controls {
+            width: 800px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        label { font-weight: bold; }
+        input[type="range"] { width: 100%; }
+        .output-value { font-weight: normal; }
+        .sine-val { color: #DC143C; }
+        .cosine-val { color: #0000CD; }
+        #legend {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1rem;
+            font-weight: bold;
+        }
+        #legend span { display: flex; align-items: center; gap: 0.5rem; }
+        .color-box { width: 15px; height: 15px; border: 1px solid #333; }
     </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-8">
-    <div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
-        <h1 class="text-3xl font-bold mb-4 text-center text-red-500">Pythagorean Theorem Visualizer</h1>
-        <p class="mb-6 text-center text-gray-600 dark:text-gray-400">Adjust the sides of the right triangle and see how a² + b² = c² holds true.</p>
-        
-        <div class="flex flex-col md:flex-row items-center justify-center gap-8">
-            <div class="controls w-full md:w-1/3">
-                <div class="mb-4">
-                    <label for="sideA" class="block text-sm font-medium">Side A:</label>
-                    <input type="range" id="sideA" min="50" max="200" value="100" class="w-full">
-                    <span id="sideAValue">100</span>
-                </div>
-                <div class="mb-4">
-                    <label for="sideB" class="block text-sm font-medium">Side B:</label>
-                    <input type="range" id="sideB" min="50" max="200" value="120" class="w-full">
-                    <span id="sideBValue">120</span>
-                </div>
-                <div class="mt-4 p-4 bg-gray-200 dark:bg-gray-700 rounded">
-                    <p class="font-bold" id="calculation">a² + b² = c²</p>
-                    <p class="font-bold" id="hypotenuse">Hypotenuse (c) = 156.2</p>
-                </div>
-            </div>
-            <div class="triangle-container">
-                <canvas id="triangle-canvas" width="300" height="300"></canvas>
-            </div>
+<body>
+    <h1>Trigonometric Waves</h1>
+    <div id="simulation-container">
+        <canvas id="simulationCanvas" width="800" height="400"></canvas>
+    </div>
+    <div id="legend">
+        <span><div class="color-box" style="background-color: #DC143C;"></div>Sine</span>
+        <span><div class="color-box" style="background-color: #0000CD;"></div>Cosine</span>
+    </div>
+    <div id="controls">
+        <div>
+            <label for="amplitude">Amplitude: <span id="amplitudeValue" class="output-value">100</span></label>
+            <input type="range" id="amplitude" min="10" max="150" value="100">
+        </div>
+        <div>
+            <label for="frequency">Frequency: <span id="frequencyValue" class="output-value">2</span></label>
+            <input type="range" id="frequency" min="1" max="10" value="2" step="0.1">
+        </div>
+        <div>
+            <label for="phaseShift">Phase Shift: <span id="phaseShiftValue" class="sine-val">0</span></label>
+            <input type="range" id="phaseShift" min="0" max="360" value="0">
+        </div>
+        <div>
+            <label for="phaseShiftCos">Phase Shift (cos): <span id="phaseShiftCosValue" class="cosine-val">0</span></label>
+            <input type="range" id="phaseShiftCos" min="0" max="360" value="0">
         </div>
     </div>
 
     <script>
-        const canvas = document.getElementById('triangle-canvas');
+        const canvas = document.getElementById('simulationCanvas');
         const ctx = canvas.getContext('2d');
-        const sideAInput = document.getElementById('sideA');
-        const sideBInput = document.getElementById('sideB');
-        const sideAValue = document.getElementById('sideAValue');
-        const sideBValue = document.getElementById('sideBValue');
-        const calculationDisplay = document.getElementById('calculation');
-        const hypotenuseDisplay = document.getElementById('hypotenuse');
+        const amplitudeInput = document.getElementById('amplitude');
+        const frequencyInput = document.getElementById('frequency');
+        const phaseShiftInput = document.getElementById('phaseShift');
+        const phaseShiftCosInput = document.getElementById('phaseShiftCos');
+
+        const amplitudeValueSpan = document.getElementById('amplitudeValue');
+        const frequencyValueSpan = document.getElementById('frequencyValue');
+        const phaseShiftValueSpan = document.getElementById('phaseShiftValue');
+        const phaseShiftCosValueSpan = document.getElementById('phaseShiftCosValue');
+
+        const width = canvas.width;
+        const height = canvas.height;
+        const centerY = height / 2;
 
         function draw() {
-            const a = parseInt(sideAInput.value);
-            const b = parseInt(sideBInput.value);
-            const c = Math.sqrt(a*a + b*b);
+            const amplitude = parseFloat(amplitudeInput.value);
+            const frequency = parseFloat(frequencyInput.value);
+            const phaseShift = parseFloat(phaseShiftInput.value) * Math.PI / 180;
+            const phaseShiftCos = parseFloat(phaseShiftCosInput.value) * Math.PI / 180;
 
-            sideAValue.textContent = a;
-            sideBValue.textContent = b;
+            amplitudeValueSpan.textContent = amplitude.toFixed(0);
+            frequencyValueSpan.textContent = frequency.toFixed(1);
+            phaseShiftValueSpan.textContent = `${phaseShiftInput.value}°`;
+            phaseShiftCosValueSpan.textContent = `${phaseShiftCosInput.value}°`;
             
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, width, height);
             
-            // Draw triangle
+            // Draw axis
             ctx.beginPath();
-            ctx.moveTo(50, 250);
-            ctx.lineTo(50 + b, 250);
-            ctx.lineTo(50, 250 - a);
-            ctx.closePath();
-            ctx.strokeStyle = '#f87171';
-            ctx.lineWidth = 3;
+            ctx.moveTo(0, centerY);
+            ctx.lineTo(width, centerY);
+            ctx.moveTo(20, 0);
+            ctx.lineTo(20, height);
+            ctx.strokeStyle = '#ccc';
             ctx.stroke();
-            ctx.fillStyle = 'rgba(248, 113, 113, 0.2)';
-            ctx.fill();
+            
+            // Draw sine wave
+            ctx.beginPath();
+            ctx.strokeStyle = '#DC143C'; // Crimson
+            ctx.lineWidth = 2;
+            for (let x = 0; x < width; x++) {
+                const angle = (x / width) * 2 * Math.PI * frequency + phaseShift;
+                const y = centerY - Math.sin(angle) * amplitude;
+                if (x === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.stroke();
 
-            // Labels
-            ctx.fillStyle = '#333';
-            ctx.font = '14px Arial';
-            ctx.fillText('a', 35, 250 - a / 2);
-            ctx.fillText('b', 50 + b / 2, 265);
-            ctx.fillText('c', 50 + b / 2, 250 - a / 2);
-
-            calculationDisplay.textContent = `${a}² + ${b}² = ${Math.round(c*c)}`;
-            hypotenuseDisplay.textContent = `Hypotenuse (c) = ${c.toFixed(1)}`;
+            // Draw cosine wave
+            ctx.beginPath();
+            ctx.strokeStyle = '#0000CD'; // MediumBlue
+            ctx.lineWidth = 2;
+            for (let x = 0; x < width; x++) {
+                const angle = (x / width) * 2 * Math.PI * frequency + phaseShiftCos;
+                const y = centerY - Math.cos(angle) * amplitude;
+                if (x === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.stroke();
         }
 
-        sideAInput.addEventListener('input', draw);
-        sideBInput.addEventListener('input', draw);
+        amplitudeInput.addEventListener('input', draw);
+        frequencyInput.addEventListener('input', draw);
+        phaseShiftInput.addEventListener('input', draw);
+        phaseShiftCosInput.addEventListener('input', draw);
 
-        draw();
+        window.addEventListener('load', draw);
     </script>
 </body>
 </html>
