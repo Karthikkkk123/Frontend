@@ -11,148 +11,138 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             margin: 0;
-            padding: 20px;
             background-color: transparent;
-            color: #f8f9fa;
+            color: #e0e0e0;
+        }
+        .container {
+            border: 1px solid hsl(var(--border));
+            padding: 20px;
+            border-radius: 8px;
+            background-color: hsl(var(--card));
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         canvas {
-            border: 1px solid #495057;
-            background-color: hsl(220, 20%, 15%);
-            border-radius: 8px;
+            background-color: #2D3748; /* A slightly lighter dark for the canvas */
+            border-radius: 4px;
+            border: 1px solid hsl(var(--border));
         }
         .controls {
             margin-top: 20px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 15px;
-            width: 100%;
-            max-width: 500px;
+            gap: 10px;
         }
         label {
-            display: block;
-            margin-bottom: 5px;
-            text-align: center;
+            font-weight: bold;
+        }
+        input, button {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #4A5568;
+            background-color: #1A202C;
+            color: #e0e0e0;
         }
         button {
-            padding: 10px 20px;
-            font-size: 16px;
             cursor: pointer;
-            background-color: #0d6efd;
+            background-color: #3182CE;
+            border-color: #3182CE;
             color: white;
-            border: none;
-            border-radius: 5px;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #0b5ed7;
-        }
-        #volumeValue {
-            margin-top: 10px;
-            font-size: 18px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <h1>Titration Simulation</h1>
-    <canvas id="simulation" width="500" height="300"></canvas>
-    <div class="controls">
-        <label for="addTitrant">Add Titrant (NaOH)</label>
-        <button id="addTitrant">Add 1 mL</button>
-        <div id="volumeValue">Volume Added: 0 mL</div>
-        <button id="reset">Reset</button>
+    <div class="container">
+        <h1>Titration Simulation</h1>
+        <canvas id="titrationCanvas" width="400" height="400"></canvas>
+        <div class="controls">
+            <div>
+                <label for="analyteVolume">Analyte Volume (mL):</label>
+                <input type="number" id="analyteVolume" value="25" min="1" max="100">
+            </div>
+            <div>
+                <label for="titrantMolarity">Titrant Molarity (M):</label>
+                <input type="number" id="titrantMolarity" value="0.1" step="0.01" min="0.01" max="1">
+            </div>
+            <button id="addTitrant">Add 1mL of Titrant</button>
+            <p>Titrant Added: <span id="titrantAdded">0</span> mL</p>
+            <p>pH: <span id="phValue">2.00</span></p>
+        </div>
     </div>
 
     <script>
-        const canvas = document.getElementById('simulation');
+        const canvas = document.getElementById('titrationCanvas');
         const ctx = canvas.getContext('2d');
-        const addTitrantButton = document.getElementById('addTitrant');
-        const resetButton = document.getElementById('reset');
-        const volumeValue = document.getElementById('volumeValue');
-        
-        let volumeAdded = 0;
-        const equivalencePoint = 25; // mL
-        const initialPH = 2; // Strong acid
-        const finalPH = 12; // Strong base
-        let currentPH = initialPH;
+        const analyteVolumeInput = document.getElementById('analyteVolume');
+        const titrantMolarityInput = document.getElementById('titrantMolarity');
+        const addTitrantBtn = document.getElementById('addTitrant');
+        const titrantAddedSpan = document.getElementById('titrantAdded');
+        const phSpan = document.getElementById('phValue');
 
-        function drawBeaker() {
-            ctx.strokeStyle = '#adb5bd';
-            ctx.lineWidth = 2;
+        let titrantAdded = 0;
+        let analyteMolarity = 0.1;
 
-            // Beaker
-            ctx.beginPath();
-            ctx.moveTo(150, 100);
-            ctx.lineTo(150, 280);
-            ctx.lineTo(350, 280);
-            ctx.lineTo(350, 100);
-            ctx.stroke();
-
-            // Solution in beaker
-            const color = getPHColor(currentPH);
-            ctx.fillStyle = color;
-            ctx.fillRect(152, 200, 196, 78);
-        }
-        
-        function drawBurette() {
-            ctx.strokeStyle = '#adb5bd';
-            ctx.lineWidth = 2;
+        function calculatePH(titrantVol) {
+            const initialMolesAnalyte = analyteMolarity * (analyteVolumeInput.value / 1000);
+            const molesTitrantAdded = titrantMolarityInput.value * (titrantVol / 1000);
             
-            // Burette
-            ctx.beginPath();
-            ctx.moveTo(240, 20);
-            ctx.lineTo(240, 150);
-            ctx.lineTo(260, 150);
-            ctx.lineTo(260, 20);
-            ctx.stroke();
-            
-            // Stopcock
-            ctx.beginPath();
-            ctx.moveTo(230, 150);
-            ctx.lineTo(270, 150);
-            ctx.stroke();
-        }
-
-        function getPHColor(ph) {
-            if (ph < 6) return 'rgba(255, 255, 0, 0.5)'; // Yellow for acidic
-            if (ph >= 6 && ph <= 8) return 'rgba(0, 255, 0, 0.5)'; // Green for neutral
-            return 'rgba(255, 0, 255, 0.5)'; // Magenta for basic
-        }
-        
-        function calculatePH() {
-            if (volumeAdded < equivalencePoint) {
-                currentPH = initialPH + (volumeAdded / equivalencePoint) * 4;
+            if (molesTitrantAdded < initialMolesAnalyte) {
+                const excessMolesAnalyte = initialMolesAnalyte - molesTitrantAdded;
+                const totalVolume = (parseFloat(analyteVolumeInput.value) + titrantVol) / 1000;
+                const newMolarity = excessMolesAnalyte / totalVolume;
+                return -Math.log10(newMolarity).toFixed(2);
+            } else if (molesTitrantAdded === initialMolesAnalyte) {
+                return 7.00; // Equivalence point for strong acid-strong base
             } else {
-                currentPH = 6 + ((volumeAdded - equivalencePoint) / equivalencePoint) * 6;
+                const excessMolesTitrant = molesTitrantAdded - initialMolesAnalyte;
+                const totalVolume = (parseFloat(analyteVolumeInput.value) + titrantVol) / 1000;
+                const ohMolarity = excessMolesTitrant / totalVolume;
+                const pOH = -Math.log10(ohMolarity);
+                return (14 - pOH).toFixed(2);
             }
-             if (currentPH > finalPH) currentPH = finalPH;
         }
 
-        function draw() {
+        function drawBeaker(analyteLevel) {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawBurette();
-            drawBeaker();
-            volumeValue.textContent = `Volume Added: ${volumeAdded.toFixed(1)} mL | pH: ${currentPH.toFixed(2)}`;
-        }
-        
-        addTitrantButton.addEventListener('click', () => {
-            if (volumeAdded < 50) {
-                volumeAdded += 1;
-                calculatePH();
-                draw();
+            // Beaker
+            ctx.strokeStyle = '#f0f0f0';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(150, 350);
+            ctx.lineTo(150, 200);
+            ctx.lineTo(250, 200);
+            ctx.lineTo(250, 350);
+            ctx.stroke();
+
+            // Analyte solution
+            const maxAnalyteHeight = 150;
+            const analyteHeight = maxAnalyteHeight * (analyteLevel / 100);
+            const currentPh = parseFloat(phSpan.textContent);
+            
+            if(currentPh < 7) {
+                 ctx.fillStyle = 'rgba(255, 99, 71, 0.5)'; // Acidic - light red
+            } else if (currentPh > 7) {
+                 ctx.fillStyle = 'rgba(65, 105, 225, 0.5)'; // Basic - royal blue
+            } else {
+                 ctx.fillStyle = 'rgba(144, 238, 144, 0.5)'; // Neutral - light green
             }
+           
+            ctx.fillRect(151, 350 - analyteHeight, 98, analyteHeight);
+        }
+
+        addTitrantBtn.addEventListener('click', () => {
+            titrantAdded++;
+            titrantAddedSpan.textContent = titrantAdded;
+            const ph = calculatePH(titrantAdded);
+            phSpan.textContent = ph;
+            drawBeaker(analyteVolumeInput.value);
         });
 
-        resetButton.addEventListener('click', () => {
-            volumeAdded = 0;
-            currentPH = initialPH;
-            draw();
-        });
+        analyteVolumeInput.addEventListener('input', () => drawBeaker(analyteVolumeInput.value));
 
-        draw();
+        drawBeaker(analyteVolumeInput.value);
     </script>
 </body>
 </html>
-
-    

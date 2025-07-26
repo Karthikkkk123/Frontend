@@ -4,152 +4,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Projectile Motion</title>
+    <title>Projectile Motion Simulation</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             margin: 0;
-            padding: 20px;
             background-color: transparent;
-            color: #f8f9fa;
+            color: #e0e0e0;
+        }
+        .container {
+            border: 1px solid hsl(var(--border));
+            padding: 20px;
+            border-radius: 8px;
+            background-color: hsl(var(--card));
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         canvas {
-            border: 1px solid #495057;
-            background-color: hsl(220, 20%, 15%);
-            border-radius: 8px;
+            background-color: #2D3748; /* A slightly lighter dark for the canvas */
+            border-radius: 4px;
+            border: 1px solid hsl(var(--border));
         }
         .controls {
             margin-top: 20px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 15px;
-            width: 100%;
-            max-width: 500px;
-        }
-        .control-group {
-            width: 100%;
+            gap: 10px;
         }
         label {
-            display: block;
-            margin-bottom: 5px;
-            text-align: center;
+            font-weight: bold;
         }
-        input[type="range"] {
-            width: 100%;
+        input, button {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #4A5568;
+            background-color: #1A202C;
+            color: #e0e0e0;
         }
         button {
-            padding: 10px 20px;
-            font-size: 16px;
             cursor: pointer;
-            background-color: #0d6efd;
+            background-color: #3182CE;
+            border-color: #3182CE;
             color: white;
-            border: none;
-            border-radius: 5px;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #0b5ed7;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <h1>Projectile Motion</h1>
-    <canvas id="simulation" width="500" height="300"></canvas>
-    <div class="controls">
-        <div class="control-group">
-            <label for="angle">Angle: <span id="angleValue">45</span>°</label>
-            <input type="range" id="angle" min="0" max="90" value="45">
+    <div class="container">
+        <h1>Projectile Motion</h1>
+        <canvas id="projectileCanvas" width="500" height="300"></canvas>
+        <div class="controls">
+            <div>
+                <label for="angle">Angle:</label>
+                <input type="number" id="angle" value="45" min="0" max="90">
+            </div>
+            <div>
+                <label for="velocity">Velocity:</label>
+                <input type="number" id="velocity" value="50" min="1" max="100">
+            </div>
+            <button id="fire">Fire!</button>
         </div>
-        <div class="control-group">
-            <label for="velocity">Velocity: <span id="velocityValue">50</span> m/s</label>
-            <input type="range" id="velocity" min="10" max="100" value="50">
-        </div>
-        <div class="control-group">
-            <label for="gravity">Gravity: <span id="gravityValue">9.8</span> m/s²</label>
-            <input type="range" id="gravity" min="1" max="20" value="9.8" step="0.1">
-        </div>
-        <button id="fire">Fire!</button>
     </div>
 
     <script>
-        const canvas = document.getElementById('simulation');
+        const canvas = document.getElementById('projectileCanvas');
         const ctx = canvas.getContext('2d');
         const angleInput = document.getElementById('angle');
         const velocityInput = document.getElementById('velocity');
-        const gravityInput = document.getElementById('gravity');
         const fireButton = document.getElementById('fire');
-        const angleValue = document.getElementById('angleValue');
-        const velocityValue = document.getElementById('velocityValue');
-        const gravityValue = document.getElementById('gravityValue');
 
+        const g = 9.8; // gravity
         let projectile = null;
+        let animationFrameId = null;
 
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Draw ground
-            ctx.fillStyle = '#6c757d';
-            ctx.fillRect(0, canvas.height - 10, canvas.width, 10);
-            
-            // Draw cannon
-            ctx.save();
-            ctx.translate(20, canvas.height - 10);
-            ctx.rotate(-angleInput.value * Math.PI / 180);
-            ctx.fillStyle = '#343a40';
-            ctx.fillRect(0, -5, 40, 10);
-            ctx.restore();
-
-
-            if (projectile) {
-                projectile.update();
-                projectile.draw();
-                if (projectile.y > canvas.height - 10) {
-                    projectile = null;
-                }
-            }
-
-            requestAnimationFrame(draw);
+        function drawCannon() {
+            ctx.fillStyle = '#f0f0f0';
+            ctx.fillRect(0, canvas.height - 20, 50, 20);
         }
 
-        fireButton.addEventListener('click', () => {
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawCannon();
+        }
+
+        function fire() {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+            clearCanvas();
+
             const angle = angleInput.value * Math.PI / 180;
             const velocity = velocityInput.value;
-            const g = gravityInput.value;
-
+            
             projectile = {
-                x: 20,
-                y: canvas.height - 10,
+                x: 25,
+                y: canvas.height - 20,
                 vx: velocity * Math.cos(angle),
                 vy: -velocity * Math.sin(angle),
-                g: g,
-                
-                update: function() {
-                    this.x += this.vx * 0.1;
-                    this.y += this.vy * 0.1;
-                    this.vy += this.g * 0.1;
-                },
-
-                draw: function() {
-                    ctx.beginPath();
-                    ctx.arc(this.x, this.y, 5, 0, Math.PI * 2);
-                    ctx.fillStyle = '#ffc107';
-                    ctx.fill();
-                    ctx.closePath();
-                }
+                radius: 5,
+                time: 0
             };
-        });
+            
+            animate();
+        }
 
-        angleInput.addEventListener('input', () => angleValue.textContent = angleInput.value);
-        velocityInput.addEventListener('input', () => velocityValue.textContent = velocityInput.value);
-        gravityInput.addEventListener('input', () => gravityValue.textContent = gravityInput.value);
+        function animate() {
+            clearCanvas();
+            projectile.time += 0.1;
+            projectile.x = 25 + projectile.vx * projectile.time;
+            projectile.y = (canvas.height - 20) + projectile.vy * projectile.time + 0.5 * g * projectile.time * projectile.time;
+            
+            ctx.beginPath();
+            ctx.arc(projectile.x, projectile.y, projectile.radius, 0, Math.PI * 2);
+            ctx.fillStyle = 'tomato';
+            ctx.fill();
 
-        draw();
+            if (projectile.y < canvas.height) {
+                animationFrameId = requestAnimationFrame(animate);
+            }
+        }
+
+        fireButton.addEventListener('click', fire);
+        drawCannon();
     </script>
 </body>
 </html>
-
-    

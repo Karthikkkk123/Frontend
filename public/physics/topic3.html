@@ -4,121 +4,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Harmonic Motion</title>
+    <title>Block on an Inclined Plane Simulation</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: transparent;
-            color: #f0f0f0;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        h1 {
-            text-align: center;
-            color: #f0f0f0;
-        }
-        canvas {
-            border: 1px solid #555;
-            background-color: #1a202c;
-            display: block;
-            margin: 20px auto;
-            border-radius: 8px;
-        }
-        .controls {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        .control {
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
+            margin: 0;
+            background-color: transparent;
+            color: #e0e0e0;
+        }
+        .container {
+            border: 1px solid hsl(var(--border));
+            padding: 20px;
+            border-radius: 8px;
+            background-color: hsl(var(--card));
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        canvas {
+            background-color: #2D3748; /* A slightly lighter dark for the canvas */
+            border-radius: 4px;
+            border: 1px solid hsl(var(--border));
+        }
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
         label {
-            margin-bottom: 5px;
+            font-weight: bold;
         }
-        input[type="range"] {
-            width: 150px;
+        input, button {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #4A5568;
+            background-color: #1A202C;
+            color: #e0e0e0;
+        }
+        button {
+            cursor: pointer;
+            background-color: #3182CE;
+            border-color: #3182CE;
+            color: white;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Simple Harmonic Motion</h1>
-        <canvas id="shmCanvas" width="600" height="400"></canvas>
+        <h1>Inclined Plane</h1>
+        <canvas id="inclinedPlaneCanvas" width="500" height="300"></canvas>
         <div class="controls">
-            <div class="control">
-                <label for="amplitude">Amplitude: <span id="amplitudeValue">100</span></label>
-                <input type="range" id="amplitude" min="10" max="150" value="100">
+            <div>
+                <label for="angle">Angle: <span id="angleValue">30</span></label>
+                <input type="range" id="angle" min="10" max="60" value="30">
             </div>
-            <div class="control">
-                <label for="frequency">Frequency: <span id="frequencyValue">1</span></label>
-                <input type="range" id="frequency" min="0.1" max="5" value="1" step="0.1">
+            <div>
+                <label for="friction">Coefficient of Friction: <span id="frictionValue">0.2</span></label>
+                <input type="range" id="friction" min="0" max="1" value="0.2" step="0.01">
             </div>
-             <div class="control">
-                <label for="damping">Damping: <span id="dampingValue">0.05</span></label>
-                <input type="range" id="damping" min="0" max="0.2" value="0.05" step="0.01">
-            </div>
+            <button id="reset">Reset</button>
         </div>
+        <p>Acceleration: <span id="accelerationValue">0</span> m/s²</p>
     </div>
 
     <script>
-        const canvas = document.getElementById('shmCanvas');
+        const canvas = document.getElementById('inclinedPlaneCanvas');
         const ctx = canvas.getContext('2d');
-        const amplitudeInput = document.getElementById('amplitude');
-        const frequencyInput = document.getElementById('frequency');
-        const dampingInput = document.getElementById('damping');
-        const amplitudeValue = document.getElementById('amplitudeValue');
-        const frequencyValue = document.getElementById('frequencyValue');
-        const dampingValue = document.getElementById('dampingValue');
+        const angleSlider = document.getElementById('angle');
+        const frictionSlider = document.getElementById('friction');
+        const angleValueSpan = document.getElementById('angleValue');
+        const frictionValueSpan = document.getElementById('frictionValue');
+        const accelerationValueSpan = document.getElementById('accelerationValue');
+        const resetButton = document.getElementById('reset');
 
-        amplitudeInput.oninput = () => amplitudeValue.textContent = amplitudeInput.value;
-        frequencyInput.oninput = () => frequencyValue.textContent = frequencyInput.value;
-        dampingInput.oninput = () => dampingValue.textContent = dampingInput.value;
+        const g = 9.8;
+        let blockPosition = 0;
+        let blockVelocity = 0;
 
-        let time = 0;
+        function updatePlane() {
+            const angle = angleSlider.value * Math.PI / 180;
+            const friction = frictionSlider.value;
+            
+            angleValueSpan.textContent = angleSlider.value;
+            frictionValueSpan.textContent = friction;
 
-        function animate() {
-            let amplitude = parseFloat(amplitudeInput.value);
-            let frequency = parseFloat(frequencyInput.value);
-            let damping = parseFloat(dampingInput.value);
-
+            const acceleration = g * (Math.sin(angle) - friction * Math.cos(angle));
+            accelerationValueSpan.textContent = acceleration.toFixed(2);
+            
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            let x = canvas.width / 2;
-            let startY = canvas.height / 2;
-            
-            // Calculate current position
-            let currentAmplitude = amplitude * Math.exp(-damping * time);
-            let y = startY + currentAmplitude * Math.sin(frequency * time);
 
-            // Draw spring
+            // Draw incline
+            const planeLength = 450;
+            const planeHeight = planeLength * Math.tan(angle);
             ctx.beginPath();
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, y-20);
-            ctx.strokeStyle = '#999';
-            ctx.stroke();
-            
-            // Draw mass
-            ctx.beginPath();
-            ctx.rect(x-20, y-20, 40, 40);
-            ctx.fillStyle = '#4299e1';
+            ctx.moveTo(25, canvas.height - 25);
+            ctx.lineTo(25 + planeLength, canvas.height - 25);
+            ctx.lineTo(25, canvas.height - 25 - planeHeight);
+            ctx.closePath();
+            ctx.fillStyle = '#f0f0f0';
             ctx.fill();
 
-            time += 0.1;
+            // Animate block
+            blockVelocity += acceleration * 0.01;
+            blockPosition += blockVelocity;
+
+            if (blockPosition > planeLength / Math.cos(angle)) {
+                blockPosition = planeLength / Math.cos(angle);
+            }
             
-            requestAnimationFrame(animate);
+            const blockX = 25 + blockPosition * Math.cos(angle);
+            const blockY = (canvas.height - 25 - planeHeight) + blockPosition * Math.sin(angle);
+            
+            ctx.fillStyle = 'tomato';
+            ctx.fillRect(blockX - 10, blockY - 20, 20, 20);
+
+            requestAnimationFrame(updatePlane);
         }
 
-        animate();
+        resetButton.addEventListener('click', () => {
+            blockPosition = 0;
+            blockVelocity = 0;
+        });
+
+        updatePlane();
     </script>
 </body>
 </html>
-
-    

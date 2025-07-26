@@ -4,120 +4,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sine Wave</title>
+    <title>Dynamic Wave Simulation</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             margin: 0;
-            padding: 20px;
             background-color: transparent;
-            color: #f8f9fa;
+            color: #e0e0e0;
+        }
+        .container {
+            border: 1px solid hsl(var(--border));
+            padding: 20px;
+            border-radius: 8px;
+            background-color: hsl(var(--card));
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         canvas {
-            border: 1px solid #495057;
-            background-color: hsl(220, 20%, 15%);
-            border-radius: 8px;
+            background-color: #2D3748; /* A slightly lighter dark for the canvas */
+            border-radius: 4px;
+            border: 1px solid hsl(var(--border));
         }
         .controls {
             margin-top: 20px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 15px;
-            width: 100%;
-            max-width: 500px;
-        }
-        .control-group {
-            width: 100%;
+            gap: 10px;
         }
         label {
-            display: block;
-            margin-bottom: 5px;
-            text-align: center;
+            font-weight: bold;
         }
-        input[type="range"] {
+        input {
             width: 100%;
         }
     </style>
 </head>
 <body>
-    <h1>Sine Wave</h1>
-    <canvas id="simulation" width="500" height="300"></canvas>
-    <div class="controls">
-        <div class="control-group">
-            <label for="amplitude">Amplitude: <span id="amplitudeValue">50</span></label>
-            <input type="range" id="amplitude" min="10" max="100" value="50">
-        </div>
-        <div class="control-group">
-            <label for="frequency">Frequency: <span id="frequencyValue">2</span></label>
-            <input type="range" id="frequency" min="1" max="10" value="2">
-        </div>
-        <div class="control-group">
-            <label for="phase">Phase Shift: <span id="phaseValue">0</span></label>
-            <input type="range" id="phase" min="0" max="360" value="0">
+    <div class="container">
+        <h1>Sine Wave Simulation</h1>
+        <canvas id="waveCanvas" width="500" height="200"></canvas>
+        <div class="controls">
+            <div>
+                <label for="amplitude">Amplitude: <span id="amplitudeValue">50</span></label>
+                <input type="range" id="amplitude" min="10" max="90" value="50">
+            </div>
+            <div>
+                <label for="frequency">Frequency: <span id="frequencyValue">2</span></label>
+                <input type="range" id="frequency" min="1" max="10" value="2" step="0.1">
+            </div>
         </div>
     </div>
 
     <script>
-        const canvas = document.getElementById('simulation');
+        const canvas = document.getElementById('waveCanvas');
         const ctx = canvas.getContext('2d');
-        const amplitudeInput = document.getElementById('amplitude');
-        const frequencyInput = document.getElementById('frequency');
-        const phaseInput = document.getElementById('phase');
-        const amplitudeValue = document.getElementById('amplitudeValue');
-        const frequencyValue = document.getElementById('frequencyValue');
-        const phaseValue = document.getElementById('phaseValue');
-        
+        const amplitudeSlider = document.getElementById('amplitude');
+        const frequencySlider = document.getElementById('frequency');
+        const amplitudeValueSpan = document.getElementById('amplitudeValue');
+        const frequencyValueSpan = document.getElementById('frequencyValue');
+
         let time = 0;
 
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            const amplitude = amplitudeInput.value;
-            const frequency = frequencyInput.value;
-            const phase = phaseInput.value * Math.PI / 180;
-            
+        function drawWave() {
+            const amplitude = amplitudeSlider.value;
+            const frequency = frequencySlider.value;
             const centerY = canvas.height / 2;
 
-            // Draw axes
-            ctx.strokeStyle = '#6c757d';
+            amplitudeValueSpan.textContent = amplitude;
+            frequencyValueSpan.textContent = frequency;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw axis
+            ctx.strokeStyle = '#f0f0f0';
+            ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(0, centerY);
             ctx.lineTo(canvas.width, centerY);
-            ctx.moveTo(20, 0);
-            ctx.lineTo(20, canvas.height);
             ctx.stroke();
 
-            // Draw sine wave
+            // Draw wave
+            ctx.strokeStyle = '#3182CE';
+            ctx.lineWidth = 3;
             ctx.beginPath();
-            ctx.strokeStyle = '#0dcaf0';
-            ctx.lineWidth = 2;
-            
             for (let x = 0; x < canvas.width; x++) {
-                const angle = (x / canvas.width) * frequency * 2 * Math.PI + phase + time;
-                const y = centerY - Math.sin(angle) * amplitude;
-                if (x === 0) {
-                    ctx.moveTo(x + 20, y);
-                } else {
-                    ctx.lineTo(x + 20, y);
-                }
+                const y = centerY + amplitude * Math.sin((x * frequency / 100) + time);
+                ctx.lineTo(x, y);
             }
             ctx.stroke();
 
-            amplitudeValue.textContent = amplitude;
-            frequencyValue.textContent = frequency;
-            phaseValue.textContent = phaseInput.value;
-
-            time += 0.02;
-            requestAnimationFrame(draw);
+            time += 0.05;
+            requestAnimationFrame(drawWave);
         }
 
-        draw();
+        drawWave();
     </script>
 </body>
 </html>
-
-    
