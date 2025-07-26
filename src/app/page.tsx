@@ -17,7 +17,7 @@ const SIMULATIONS = [
   {
     name: "Photosynthesis",
     icon: Dna,
-    description: "Explore how waves interact with each other.",
+    description: "Explore how plants convert light into energy.",
     href: "/simu2.html",
     color: "text-blue-400",
     shadow: "shadow-blue-400/20",
@@ -25,7 +25,7 @@ const SIMULATIONS = [
   {
     name: "Pendulum",
     icon: FlaskConical,
-    description: "Simulate a chemical titration experiment.",
+    description: "Observe the motion of a simple pendulum.",
     href: "/simu3.html",
     color: "text-green-400",
     shadow: "shadow-green-400/20",
@@ -33,7 +33,7 @@ const SIMULATIONS = [
   {
     name: "Rotational Torque",
     icon: Atom,
-    description: "Discover the components of an atom.",
+    description: "Understand the forces that cause rotation.",
     href: "/simu4.html",
     color: "text-pink-400",
     shadow: "shadow-pink-400/20",
