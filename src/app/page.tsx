@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useRouter } from "next/navigation";
 
 const FOLDERS_DATA = {
   physics: {
@@ -37,6 +38,7 @@ type FolderKey = keyof typeof FOLDERS_DATA;
 export default function Home() {
   const [selectedFolder, setSelectedFolder] = useState<FolderKey | null>(null);
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+  const router = useRouter();
 
   const handleFolderClick = (folder: FolderKey) => {
     if (selectedFolder === folder) {
@@ -52,7 +54,7 @@ export default function Home() {
     if (!selectedFolder) return;
     setSelectedTopic(topic);
     const filePath = `/${selectedFolder}/${topic}`;
-    window.open(filePath, "_blank");
+    router.push(`/view-content?file=${encodeURIComponent(filePath)}`);
   };
 
   return (

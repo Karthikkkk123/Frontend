@@ -1,10 +1,9 @@
 'use server';
 
-import { optimizeHtmlContent } from '@/ai/flows/optimize-html';
 import { promises as fs } from 'fs';
 import path from 'path';
 
-export async function getOptimizedHtml(filePath: string): Promise<string> {
+export async function getRawHtml(filePath: string): Promise<string> {
   try {
     const publicDir = path.join(process.cwd(), 'public');
     // Sanitize filePath to prevent directory traversal
@@ -16,9 +15,7 @@ export async function getOptimizedHtml(filePath: string): Promise<string> {
     }
 
     const htmlContent = await fs.readFile(fullPath, 'utf-8');
-
-    const result = await optimizeHtmlContent({ htmlContent });
-    return result.optimizedHtmlContent;
+    return htmlContent;
   } catch (error) {
     console.error(`Error processing file at ${filePath}:`, error);
 
